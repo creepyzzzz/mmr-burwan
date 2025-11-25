@@ -1,0 +1,93 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, User } from 'lucide-react';
+
+const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        {/* Logo Area */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-md text-white font-serif font-bold text-xl">
+            M
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif font-bold text-gray-900 leading-none text-lg tracking-tight">MMR Burwan</span>
+            <span className="text-[10px] uppercase tracking-widest text-gold-600 font-medium">Official Portal</span>
+          </div>
+        </div>
+
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          <Link to="/" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Home</Link>
+          <a href="#services" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Services</a>
+          <Link to="/verify" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Verify</Link>
+          <Link to="/help" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Help</Link>
+        </nav>
+
+        {/* Actions */}
+        <div className="hidden md:flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/auth/login')}
+              className="text-sm font-medium text-gold-700 hover:text-gold-900 px-3 py-2 transition-colors"
+            >
+                Log In
+            </button>
+            <button 
+              onClick={() => navigate('/auth/register')}
+              className="bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+                <User size={16} />
+                Registration
+            </button>
+        </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          className="md:hidden text-gray-700"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 p-6 shadow-lg flex flex-col gap-4 animate-fade-in">
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-base font-medium text-gray-800">Home</Link>
+          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-base font-medium text-gray-800">Services</a>
+          <Link to="/verify" onClick={() => setMobileMenuOpen(false)} className="text-base font-medium text-gray-800">Verify</Link>
+          <Link to="/help" onClick={() => setMobileMenuOpen(false)} className="text-base font-medium text-gray-800">Help</Link>
+          <hr className="border-gray-100"/>
+          <button 
+            onClick={() => {
+              navigate('/auth/register');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full bg-gold-500 text-white py-3 rounded-lg font-medium"
+          >
+            Registration
+          </button>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default Navbar;

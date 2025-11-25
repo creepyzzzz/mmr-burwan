@@ -1,0 +1,138 @@
+import React, { useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Calendar, 
+  FileText, 
+  MessageSquare, 
+  QrCode, 
+  ShieldCheck,
+  Settings,
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
+
+const AdminLayout: React.FC = () => {
+  const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/clients', icon: Users, label: 'Clients' },
+    { path: '/admin/appointments', icon: Calendar, label: 'Appointments' },
+    { path: '/admin/certificates', icon: FileText, label: 'Certificates' },
+    { path: '/admin/chat', icon: MessageSquare, label: 'Messages' },
+    { path: '/admin/scanner', icon: QrCode, label: 'QR Scanner' },
+    { path: '/admin/audit', icon: ShieldCheck, label: 'Audit Logs' },
+    { path: '/admin/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50
+        w-64 bg-white border-r border-gray-200
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <Link to="/admin" className="flex items-center gap-3 px-6 py-6 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-md text-white font-serif font-bold text-xl">
+              M
+            </div>
+            <div className="flex flex-col">
+              <span className="font-serif font-bold text-gray-900 leading-none text-lg tracking-tight">MMR Burwan</span>
+              <span className="text-[10px] uppercase tracking-widest text-gold-600 font-medium">Admin Portal</span>
+            </div>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path || 
+                              (item.path !== '/admin' && location.pathname.startsWith(item.path));
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl
+                    transition-all duration-200
+                    ${isActive 
+                      ? 'bg-gold-50 text-gold-700 font-medium shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  <Icon size={20} />
+                  <span className="text-sm">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Logout */}
+          <div className="px-4 py-4 border-t border-gray-200">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+            >
+              <LogOut size={20} />
+              <span className="text-sm">Logout</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden text-gray-600 hover:text-gray-900"
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          
+          <div className="flex items-center gap-4 ml-auto">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium text-gray-900">{user?.name || 'Admin User'}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLayout;
+

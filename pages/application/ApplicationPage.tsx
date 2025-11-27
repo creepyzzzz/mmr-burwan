@@ -98,11 +98,11 @@ const ApplicationFormContent: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [applicationDocuments, setApplicationDocuments] = useState<any[]>([]);
-  
+
   // Define isSubmitted here ONCE. 
   // All other parts of the code should use this variable.
   const isSubmitted = application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review';
-  
+
   // Redirect to dashboard if application is submitted and user tries to edit
   useEffect(() => {
     if (isSubmitted) {
@@ -535,14 +535,14 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="City"
                     {...addressForm.register('userPermanentCity')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.userPermanentCity?.message}
                     required
                   />
                   <Input
                     label="State"
                     {...addressForm.register('userPermanentState')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.userPermanentState?.message}
                     required
                   />
@@ -551,14 +551,14 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="ZIP Code"
                     {...addressForm.register('userPermanentZipCode')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.userPermanentZipCode?.message}
                     required
                   />
                   <Input
                     label="Country"
                     {...addressForm.register('userPermanentCountry')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.userPermanentCountry?.message}
                     defaultValue="India"
                     required
@@ -579,7 +579,7 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="Street Address"
                     {...addressForm.register('userCurrentStreet')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.userCurrentStreet?.message}
                     required
                     disabled={userSameAsPermanent}
@@ -588,7 +588,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="City"
                       {...addressForm.register('userCurrentCity')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.userCurrentCity?.message}
                       required
                       disabled={userSameAsPermanent}
@@ -596,7 +596,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="State"
                       {...addressForm.register('userCurrentState')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.userCurrentState?.message}
                       required
                       disabled={userSameAsPermanent}
@@ -606,7 +606,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="ZIP Code"
                       {...addressForm.register('userCurrentZipCode')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.userCurrentZipCode?.message}
                       required
                       disabled={userSameAsPermanent}
@@ -614,7 +614,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="Country"
                       {...addressForm.register('userCurrentCountry')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.userCurrentCountry?.message}
                       defaultValue="India"
                       required
@@ -640,14 +640,14 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="City"
                     {...addressForm.register('partnerPermanentCity')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.partnerPermanentCity?.message}
                     required
                   />
                   <Input
                     label="State"
                     {...addressForm.register('partnerPermanentState')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.partnerPermanentState?.message}
                     required
                   />
@@ -656,14 +656,14 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="ZIP Code"
                     {...addressForm.register('partnerPermanentZipCode')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.partnerPermanentZipCode?.message}
                     required
                   />
                   <Input
                     label="Country"
                     {...addressForm.register('partnerPermanentCountry')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.partnerPermanentCountry?.message}
                     defaultValue="India"
                     required
@@ -684,7 +684,7 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="Street Address"
                     {...addressForm.register('partnerCurrentStreet')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted}
                     error={addressForm.formState.errors.partnerCurrentStreet?.message}
                     required
                     disabled={partnerSameAsPermanent}
@@ -693,7 +693,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="City"
                       {...addressForm.register('partnerCurrentCity')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.partnerCurrentCity?.message}
                       required
                       disabled={partnerSameAsPermanent}
@@ -701,7 +701,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="State"
                       {...addressForm.register('partnerCurrentState')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.partnerCurrentState?.message}
                       required
                       disabled={partnerSameAsPermanent}
@@ -711,7 +711,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="ZIP Code"
                       {...addressForm.register('partnerCurrentZipCode')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.partnerCurrentZipCode?.message}
                       required
                       disabled={partnerSameAsPermanent}
@@ -719,7 +719,7 @@ const ApplicationFormContent: React.FC = () => {
                     <Input
                       label="Country"
                       {...addressForm.register('partnerCurrentCountry')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted}
                       error={addressForm.formState.errors.partnerCurrentCountry?.message}
                       defaultValue="India"
                       required
@@ -737,7 +737,7 @@ const ApplicationFormContent: React.FC = () => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Your Documents</h3>
               <p className="text-sm text-gray-600 mb-6">Upload your Aadhaar card and either 10th class certificate or Voter ID</p>
-              
+
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -822,7 +822,7 @@ const ApplicationFormContent: React.FC = () => {
             <div className="pt-6 border-t border-gray-200">
               <h3 className="font-semibold text-gray-900 mb-2">Partner's Documents</h3>
               <p className="text-sm text-gray-600 mb-6">Upload partner's Aadhaar card and either 10th class certificate or Voter ID</p>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -933,7 +933,7 @@ const ApplicationFormContent: React.FC = () => {
         const userData = detailsForm.getValues();
         const addressData = addressForm.getValues();
         // REMOVED RE-DECLARATION OF isSubmitted HERE TO FIX THE CRASH
-        
+
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
@@ -1159,10 +1159,10 @@ const ApplicationFormContent: React.FC = () => {
                           <CheckCircle size={16} className="text-green-600 ml-auto" />
                         </div>
                       ))}
-                    {applicationDocuments.filter(d => d.belongsTo === 'user').length === 0 && 
+                    {applicationDocuments.filter(d => d.belongsTo === 'user').length === 0 &&
                       documents.filter(d => d.belongsTo === 'user').length === 0 && (
-                      <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
-                    )}
+                        <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
+                      )}
                   </div>
                 </div>
                 <div>
@@ -1205,10 +1205,10 @@ const ApplicationFormContent: React.FC = () => {
                           <CheckCircle size={16} className="text-green-600 ml-auto" />
                         </div>
                       ))}
-                    {applicationDocuments.filter(d => d.belongsTo === 'partner').length === 0 && 
+                    {applicationDocuments.filter(d => d.belongsTo === 'partner').length === 0 &&
                       documents.filter(d => d.belongsTo === 'partner').length === 0 && (
-                      <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
-                    )}
+                        <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
+                      )}
                   </div>
                 </div>
               </div>
@@ -1403,7 +1403,7 @@ const ApplicationFormContent: React.FC = () => {
               isLoading={isSaving}
               disabled={currentStep === applicationSteps.length - 1 && (application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review')}
             >
-              {currentStep === applicationSteps.length - 1 
+              {currentStep === applicationSteps.length - 1
                 ? (application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review')
                   ? 'Already Submitted'
                   : 'Submit Application'
@@ -1419,7 +1419,7 @@ const ApplicationFormContent: React.FC = () => {
 
 const ApplicationPage: React.FC = () => {
   const { user } = useAuth();
-  
+
   if (!user) {
     return null;
   }

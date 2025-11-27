@@ -99,16 +99,20 @@ const ApplicationFormContent: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [applicationDocuments, setApplicationDocuments] = useState<any[]>([]);
   
+  // Define isSubmitted here ONCE. 
+  // All other parts of the code should use this variable.
+  const isSubmitted = application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review';
+  
   // Redirect to dashboard if application is submitted and user tries to edit
   useEffect(() => {
-    if (application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review') {
+    if (isSubmitted) {
       // Only allow viewing review step, redirect if trying to edit
       if (currentStep !== 4) {
         setCurrentStep(4);
         showToast('Application has been submitted and cannot be edited', 'info');
       }
     }
-  }, [application?.status, currentStep, showToast]);
+  }, [application?.status, currentStep, showToast, isSubmitted]);
 
   const detailsForm = useForm({
     resolver: zodResolver(detailsSchema),
@@ -201,8 +205,6 @@ const ApplicationFormContent: React.FC = () => {
       loadDocuments();
     }
   }, [currentStep, application]);
-
-  const isSubmitted = application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review';
 
   const handleNext = async () => {
     if (isSubmitted && currentStep < 4) {
@@ -930,7 +932,7 @@ const ApplicationFormContent: React.FC = () => {
       case 4:
         const userData = detailsForm.getValues();
         const addressData = addressForm.getValues();
-        const isSubmitted = application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review';
+        // REMOVED RE-DECLARATION OF isSubmitted HERE TO FIX THE CRASH
         
         return (
           <div className="space-y-6">
@@ -1158,7 +1160,7 @@ const ApplicationFormContent: React.FC = () => {
                         </div>
                       ))}
                     {applicationDocuments.filter(d => d.belongsTo === 'user').length === 0 && 
-                     documents.filter(d => d.belongsTo === 'user').length === 0 && (
+                      documents.filter(d => d.belongsTo === 'user').length === 0 && (
                       <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
                     )}
                   </div>
@@ -1204,7 +1206,7 @@ const ApplicationFormContent: React.FC = () => {
                         </div>
                       ))}
                     {applicationDocuments.filter(d => d.belongsTo === 'partner').length === 0 && 
-                     documents.filter(d => d.belongsTo === 'partner').length === 0 && (
+                      documents.filter(d => d.belongsTo === 'partner').length === 0 && (
                       <p className="text-sm text-gray-400 italic">No documents uploaded yet</p>
                     )}
                   </div>

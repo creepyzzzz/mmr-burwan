@@ -7,6 +7,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, name: string, phone?: string) => Promise<{ needsConfirmation: true; email: string } | { user: User; token: string }>;
+  signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: User) => void;
   isAuthenticated: boolean;
@@ -105,6 +106,17 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      await authService.signInWithGoogle();
+      // Note: signInWithGoogle will redirect the user to Google, so we don't need to handle the response here
+      // The OAuth callback will be handled by Supabase and the session will be created automatically
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      throw error;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -129,6 +141,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         register,
+        signInWithGoogle,
         logout,
         updateUser,
         isAuthenticated: !!user,

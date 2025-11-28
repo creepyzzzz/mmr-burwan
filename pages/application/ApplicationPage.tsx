@@ -313,10 +313,13 @@ const ApplicationFormContent: React.FC = () => {
           for (const doc of documents) {
             await documentService.uploadDocument(application.id, doc.file, doc.type, doc.belongsTo);
           }
+          showToast('Documents uploaded successfully!', 'success');
         }
         setCurrentStep(currentStep + 1);
-      } catch (error) {
-        showToast('Failed to upload documents. Please try again.', 'error');
+      } catch (error: any) {
+        console.error('Document upload error:', error);
+        const errorMessage = error?.message || 'Failed to upload documents. Please try again.';
+        showToast(errorMessage, 'error');
       } finally {
         setIsSaving(false);
       }
@@ -577,46 +580,41 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="Street Address"
                     {...addressForm.register('userCurrentStreet')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted || userSameAsPermanent}
                     error={addressForm.formState.errors.userCurrentStreet?.message}
                     required
-                    disabled={userSameAsPermanent}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       label="City"
                       {...addressForm.register('userCurrentCity')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || userSameAsPermanent}
                       error={addressForm.formState.errors.userCurrentCity?.message}
                       required
-                      disabled={userSameAsPermanent}
                     />
                     <Input
                       label="State"
                       {...addressForm.register('userCurrentState')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || userSameAsPermanent}
                       error={addressForm.formState.errors.userCurrentState?.message}
                       required
-                      disabled={userSameAsPermanent}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       label="ZIP Code"
                       {...addressForm.register('userCurrentZipCode')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || userSameAsPermanent}
                       error={addressForm.formState.errors.userCurrentZipCode?.message}
                       required
-                      disabled={userSameAsPermanent}
                     />
                     <Input
                       label="Country"
                       {...addressForm.register('userCurrentCountry')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || userSameAsPermanent}
                       error={addressForm.formState.errors.userCurrentCountry?.message}
                       defaultValue="India"
                       required
-                      disabled={userSameAsPermanent}
                     />
                   </div>
                 </div>
@@ -682,46 +680,41 @@ const ApplicationFormContent: React.FC = () => {
                   <Input
                     label="Street Address"
                     {...addressForm.register('partnerCurrentStreet')}
-                  disabled={isSubmitted}
+                    disabled={isSubmitted || partnerSameAsPermanent}
                     error={addressForm.formState.errors.partnerCurrentStreet?.message}
                     required
-                    disabled={partnerSameAsPermanent}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       label="City"
                       {...addressForm.register('partnerCurrentCity')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || partnerSameAsPermanent}
                       error={addressForm.formState.errors.partnerCurrentCity?.message}
                       required
-                      disabled={partnerSameAsPermanent}
                     />
                     <Input
                       label="State"
                       {...addressForm.register('partnerCurrentState')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || partnerSameAsPermanent}
                       error={addressForm.formState.errors.partnerCurrentState?.message}
                       required
-                      disabled={partnerSameAsPermanent}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       label="ZIP Code"
                       {...addressForm.register('partnerCurrentZipCode')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || partnerSameAsPermanent}
                       error={addressForm.formState.errors.partnerCurrentZipCode?.message}
                       required
-                      disabled={partnerSameAsPermanent}
                     />
                     <Input
                       label="Country"
                       {...addressForm.register('partnerCurrentCountry')}
-                  disabled={isSubmitted}
+                      disabled={isSubmitted || partnerSameAsPermanent}
                       error={addressForm.formState.errors.partnerCurrentCountry?.message}
                       defaultValue="India"
                       required
-                      disabled={partnerSameAsPermanent}
                     />
                   </div>
                 </div>
@@ -930,7 +923,6 @@ const ApplicationFormContent: React.FC = () => {
       case 4:
         const userData = detailsForm.getValues();
         const addressData = addressForm.getValues();
-        const isSubmitted = application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review';
         
         return (
           <div className="space-y-6">

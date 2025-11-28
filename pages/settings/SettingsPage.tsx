@@ -8,11 +8,12 @@ import { appointmentService } from '../../services/appointments';
 import { certificateService } from '../../services/certificates';
 import { documentService } from '../../services/documents';
 import { supabase } from '../../lib/supabase';
+import { Profile } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import PhoneInput from '../../components/ui/PhoneInput';
-import { User, Mail, Phone, LogOut, Download, Key, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, LogOut, Download, Key, ArrowLeft, Calendar, Hash, MapPin, Heart } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,17 +21,69 @@ const SettingsPage: React.FC = () => {
   const { showToast } = useNotification();
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
+    dateOfBirth: '',
+    idNumber: '',
+    addressStreet: '',
+    addressCity: '',
+    addressState: '',
+    addressZipCode: '',
+    addressCountry: 'India',
+    partnerFirstName: '',
+    partnerLastName: '',
   });
 
   useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const profileData = await profileService.getProfile(user.id);
+        setProfile(profileData);
+        
+        if (profileData) {
+          setFormData({
+            name: user.name || '',
+            phone: user.phone || '',
+            dateOfBirth: profileData.dateOfBirth || '',
+            idNumber: profileData.idNumber || '',
+            addressStreet: profileData.address?.street || '',
+            addressCity: profileData.address?.city || '',
+            addressState: profileData.address?.state || '',
+            addressZipCode: profileData.address?.zipCode || '',
+            addressCountry: profileData.address?.country || 'India',
+            partnerFirstName: profileData.partnerDetails?.firstName || '',
+            partnerLastName: profileData.partnerDetails?.lastName || '',
+          });
+        } else {
+          setFormData({
+            name: user.name || '',
+            phone: user.phone || '',
+            dateOfBirth: '',
+            idNumber: '',
+            addressStreet: '',
+            addressCity: '',
+            addressState: '',
+            addressZipCode: '',
+            addressCountry: 'India',
+            partnerFirstName: '',
+            partnerLastName: '',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (user) {
-      setFormData({
-        name: user.name || '',
-        phone: user.phone || '',
-      });
+      loadProfile();
     }
   }, [user]);
 
@@ -83,25 +136,52 @@ const SettingsPage: React.FC = () => {
       }
 
       // Always update profile in database (this uses RLS policies)
-      const profile = await profileService.getProfile(user.id);
+      const currentProfile = await profileService.getProfile(user.id);
       const nameParts = formData.name.split(' ');
       
-      if (profile) {
-        await profileService.updateProfile(user.id, {
-          firstName: nameParts[0] || formData.name,
-          lastName: nameParts.slice(1).join(' ') || '',
-        });
-        
-        // Recalculate completion percentage after update
-        await profileService.calculateCompletion(user.id);
-      } else {
-        // If no profile exists, create one with basic info
-        await profileService.updateProfile(user.id, {
-          firstName: nameParts[0] || formData.name,
-          lastName: nameParts.slice(1).join(' ') || '',
-        });
-        await profileService.calculateCompletion(user.id);
+      const profileUpdate: any = {
+        firstName: nameParts[0] || formData.name,
+        lastName: nameParts.slice(1).join(' ') || '',
+      };
+
+      // Add date of birth if provided
+      if (formData.dateOfBirth) {
+        profileUpdate.dateOfBirth = formData.dateOfBirth;
       }
+
+      // Add ID number if provided
+      if (formData.idNumber) {
+        profileUpdate.idNumber = formData.idNumber;
+      }
+
+      // Add address if street and city are provided
+      if (formData.addressStreet && formData.addressCity) {
+        profileUpdate.address = {
+          street: formData.addressStreet,
+          city: formData.addressCity,
+          state: formData.addressState || '',
+          zipCode: formData.addressZipCode || '',
+          country: formData.addressCountry || 'India',
+        };
+      }
+
+      // Add partner details if first and last name are provided
+      if (formData.partnerFirstName && formData.partnerLastName) {
+        profileUpdate.partnerDetails = {
+          ...(currentProfile?.partnerDetails || {}),
+          firstName: formData.partnerFirstName,
+          lastName: formData.partnerLastName,
+        };
+      }
+      
+      await profileService.updateProfile(user.id, profileUpdate);
+      
+      // Recalculate completion percentage after update
+      const completion = await profileService.calculateCompletion(user.id);
+      
+      // Reload profile to get updated data
+      const updatedProfile = await profileService.getProfile(user.id);
+      setProfile(updatedProfile);
 
       // Update local state
       const updatedUser = {
@@ -192,6 +272,17 @@ const SettingsPage: React.FC = () => {
     showToast('Password change feature will be available soon', 'info');
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Navigate anyway to ensure user is redirected
+      navigate('/');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <div className="mb-8">
@@ -209,73 +300,193 @@ const SettingsPage: React.FC = () => {
         <p className="text-gray-600">Manage your account settings</p>
       </div>
 
-      <div className="space-y-6">
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <User size={20} className="text-gold-600" />
-            Profile Information
-          </h3>
-          <div className="space-y-4">
-            <Input
-              label="Full Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              leftIcon={<User size={20} />}
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={user?.email || ''}
-              leftIcon={<Mail size={20} />}
-              disabled
-            />
-            <PhoneInput
-              label="Phone Number"
-              value={formData.phone?.replace('+91', '').trim() || ''}
-              onChange={(value) => setFormData({ ...formData, phone: value ? `+91${value}` : '' })}
-              leftIcon={<Phone size={20} />}
-            />
-            <Button 
-              variant="primary" 
-              onClick={handleSaveChanges}
-              isLoading={isSaving}
-            >
-              Save Changes
-            </Button>
-          </div>
-        </Card>
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <User size={20} className="text-gold-600" />
+              Basic Information
+            </h3>
+            <div className="space-y-4">
+              <Input
+                label="Full Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                leftIcon={<User size={20} />}
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={user?.email || ''}
+                leftIcon={<Mail size={20} />}
+                disabled
+              />
+              <PhoneInput
+                label="Phone Number"
+                value={formData.phone?.replace('+91', '').trim() || ''}
+                onChange={(value) => setFormData({ ...formData, phone: value ? `+91${value}` : '' })}
+                leftIcon={<Phone size={20} />}
+              />
+            </div>
+          </Card>
 
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-6">Account Actions</h3>
-          <div className="space-y-4">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={handleChangePassword}
-            >
-              <Key size={18} className="mr-2" />
-              Change Password
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={handleDownloadData}
-              isLoading={isDownloading}
-            >
-              <Download size={18} className="mr-2" />
-              Download My Data
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-rose-600 hover:text-rose-700"
-              onClick={logout}
-            >
-              <LogOut size={18} className="mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </Card>
-      </div>
+          {/* Personal Details */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <Calendar size={20} className="text-gold-600" />
+              Personal Details
+            </h3>
+            <div className="space-y-4">
+              <Input
+                label="Date of Birth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                leftIcon={<Calendar size={20} />}
+              />
+              <Input
+                label="Aadhaar Number (ID Number)"
+                type="text"
+                maxLength={12}
+                value={formData.idNumber}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                  setFormData({ ...formData, idNumber: value });
+                }}
+                leftIcon={<Hash size={20} />}
+                placeholder="Enter 12-digit Aadhaar number"
+              />
+            </div>
+          </Card>
+
+          {/* Address Information */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <MapPin size={20} className="text-gold-600" />
+              Address Information
+            </h3>
+            <div className="space-y-4">
+              <Input
+                label="Street Address"
+                value={formData.addressStreet}
+                onChange={(e) => setFormData({ ...formData, addressStreet: e.target.value })}
+                leftIcon={<MapPin size={20} />}
+                placeholder="Enter your street address"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="City"
+                  value={formData.addressCity}
+                  onChange={(e) => setFormData({ ...formData, addressCity: e.target.value })}
+                  placeholder="Enter city"
+                />
+                <Input
+                  label="State"
+                  value={formData.addressState}
+                  onChange={(e) => setFormData({ ...formData, addressState: e.target.value })}
+                  placeholder="Enter state"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="ZIP Code"
+                  value={formData.addressZipCode}
+                  onChange={(e) => setFormData({ ...formData, addressZipCode: e.target.value })}
+                  placeholder="Enter ZIP code"
+                />
+                <Input
+                  label="Country"
+                  value={formData.addressCountry}
+                  onChange={(e) => setFormData({ ...formData, addressCountry: e.target.value })}
+                  placeholder="Enter country"
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Partner Details */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <Heart size={20} className="text-gold-600" />
+              Partner Details
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Partner First Name"
+                  value={formData.partnerFirstName}
+                  onChange={(e) => setFormData({ ...formData, partnerFirstName: e.target.value })}
+                  placeholder="Enter partner's first name"
+                />
+                <Input
+                  label="Partner Last Name"
+                  value={formData.partnerLastName}
+                  onChange={(e) => setFormData({ ...formData, partnerLastName: e.target.value })}
+                  placeholder="Enter partner's last name"
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Save Button */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">
+                  Profile Completion: <span className="font-semibold text-gray-900">{profile?.completionPercentage || 0}%</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Complete all sections to reach 100%
+                </p>
+              </div>
+              <Button 
+                variant="primary" 
+                onClick={handleSaveChanges}
+                isLoading={isSaving}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </Card>
+
+          {/* Account Actions */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-6">Account Actions</h3>
+            <div className="space-y-4">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={handleChangePassword}
+              >
+                <Key size={18} className="mr-2" />
+                Change Password
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={handleDownloadData}
+                isLoading={isDownloading}
+              >
+                <Download size={18} className="mr-2" />
+                Download My Data
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-rose-600 hover:text-rose-700"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} className="mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

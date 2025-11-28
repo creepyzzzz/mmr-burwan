@@ -97,6 +97,25 @@ export const authService = {
     };
   },
 
+  async signInWithGoogle(): Promise<void> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/magic-link`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    // Note: The redirect will happen automatically, so we don't return anything
+    // The user will be redirected to Google, then back to our callback URL
+  },
+
   async sendMagicLink(email: string): Promise<void> {
     const { error } = await supabase.auth.signInWithOtp({
       email,

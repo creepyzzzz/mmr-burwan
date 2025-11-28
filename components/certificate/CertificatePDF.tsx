@@ -3,23 +3,48 @@ import { Document, Page, Text, View, Image, StyleSheet, Font } from '@react-pdf/
 import { Application } from '../../types';
 import { safeFormatDate } from '../../utils/dateUtils';
 
-// Helper function to get image URL - React PDF works with absolute URLs
+// Helper function to get image URL
 const getImageUrl = (path: string): string => {
-  // In browser environment, use window.location.origin
   if (typeof window !== 'undefined') {
     return `${window.location.origin}${path}`;
   }
-  // Fallback for server-side rendering
   return path;
 };
 
-// Register fonts - React PDF has built-in support for Helvetica, Times-Roman, and Courier
-// For custom fonts, you would need to load font files and register them here
-// Using built-in fonts for now - can be replaced with custom fonts if needed
-// Font.register({
-//   family: 'Calibri',
-//   src: '/fonts/Calibri.ttf',
-// });
+// Register Times font family
+Font.register({
+  family: 'Times',
+  fonts: [
+    { src: '/fonts/times.ttf', fontWeight: 'normal', fontStyle: 'normal' },
+    { src: '/fonts/timesbd.ttf', fontWeight: 'bold', fontStyle: 'normal' },
+    { src: '/fonts/timesi.ttf', fontWeight: 'normal', fontStyle: 'italic' },
+    { src: '/fonts/timesbi.ttf', fontWeight: 'bold', fontStyle: 'italic' },
+  ],
+});
+
+// Register Arial font family
+Font.register({
+  family: 'Arial',
+  fonts: [
+    { src: '/fonts/arial.ttf', fontWeight: 'normal' },
+    { src: '/fonts/arialbd.ttf', fontWeight: 'bold' },
+  ],
+});
+
+// Register Calibri font family
+Font.register({
+  family: 'Calibri',
+  fonts: [
+    { src: '/fonts/calibri.ttf', fontWeight: 'normal' },
+    { src: '/fonts/calibrib.ttf', fontWeight: 'bold' },
+  ],
+});
+
+// Register Old English font
+Font.register({
+  family: 'OldEnglish',
+  src: '/fonts/OLDENGL.TTF',
+});
 
 // Format Aadhaar number with spaces
 const formatAadhaar = (aadhaar: string | undefined): string => {
@@ -31,7 +56,7 @@ const formatAadhaar = (aadhaar: string | undefined): string => {
   return aadhaar;
 };
 
-// Format address in the exact format
+// Format address matching original format
 const formatAddress = (address: any): string => {
   if (!address || (!address.street && !address.city)) return 'N/A';
   const parts = [];
@@ -79,14 +104,17 @@ interface CertificatePDFProps {
   };
 }
 
+// Exact colors from the original
+const GOLD = '#8B6914';
+const GREEN = '#006400';
+const RED = '#8B0000';
+const BLACK = '#000000';
+const WHITE = '#FFFFFF';
+
 const styles = StyleSheet.create({
   page: {
-    padding: '20 25 20 25',
-    backgroundColor: '#ffffff',
     position: 'relative',
-    fontFamily: 'Helvetica',
-    fontSize: 11,
-    color: '#000000',
+    backgroundColor: WHITE,
   },
   borderContainer: {
     position: 'absolute',
@@ -99,242 +127,305 @@ const styles = StyleSheet.create({
   borderImage: {
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
+    objectFit: 'fill',
   },
   content: {
     position: 'relative',
     zIndex: 1,
-    width: '100%',
+    padding: '50 45 45 45',
   },
+  
+  // ===== HEADER =====
   header: {
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  logosContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 15,
+    margin: '0 auto 2',
   },
   emblemContainer: {
-    width: 55,
-    height: 55,
-    margin: '0 auto 6',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 52,
+    height: 52,
   },
   emblem: {
-    width: 55,
-    height: 55,
+    width: 52,
+    height: 52,
+    objectFit: 'contain',
   },
-  headerTitle1: {
-    fontFamily: 'Helvetica',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 4,
-    marginBottom: 2,
-    letterSpacing: 0.2,
-    color: '#000000',
-    textTransform: 'uppercase',
+  westBengalLogo: {
+    width: 52,
+    height: 52,
+    objectFit: 'contain',
   },
-  headerTitle2: {
-    fontFamily: 'Helvetica',
+  govTitle: {
+    fontFamily: 'Times',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 6,
-    color: '#000000',
-    textTransform: 'uppercase',
+    color: BLACK,
+    marginBottom: 1,
   },
-  officeDetails: {
-    marginTop: 4,
-    fontSize: 11,
-    lineHeight: 1.3,
-    color: '#000000',
-  },
-  officeName: {
-    fontWeight: 'bold',
+  lawDeptBox: {
+    backgroundColor: WHITE,
+    padding: '2 15',
     marginBottom: 2,
+    alignSelf: 'center',
+  },
+  lawDeptText: {
+    fontFamily: 'Times',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: BLACK,
+    textDecoration: 'underline',
+  },
+  officeTitle: {
+    fontFamily: 'Times',
     fontSize: 11,
+    fontWeight: 'bold',
+    color: BLACK,
+    marginBottom: 1,
   },
-  actReference: {
-    fontSize: 10,
-    fontStyle: 'normal',
-    marginTop: 3,
+  officeAddress: {
+    fontFamily: 'Arial',
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: BLACK,
+    marginBottom: 1,
   },
-  certificateTitle: {
+  actText: {
+    fontFamily: 'Arial',
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: BLACK,
+  },
+  
+  // ===== CERTIFICATE TITLE =====
+  titleSection: {
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 4,
     marginBottom: 8,
   },
-  certificateTitleText: {
-    fontFamily: 'Times-Roman',
-    fontSize: 28,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-    color: '#8b6914',
-    marginBottom: 6,
-    letterSpacing: 0.3,
+  certificateTitle: {
+    fontFamily: 'OldEnglish',
+    fontSize: 36,
+    color: '#5C450D',
+    marginBottom: 8,
+    textDecoration: 'underline',
   },
-  certificateIntro: {
+  introText: {
+    fontFamily: 'Times',
     fontSize: 11,
     fontStyle: 'italic',
-    lineHeight: 1.3,
+    color: '#874313',
+    lineHeight: 1.4,
+    paddingHorizontal: 10,
+    textAlign: 'center',
     marginBottom: 6,
-    paddingHorizontal: 8,
-    color: '#000000',
   },
-  certificateInfo: {
+  
+  // ===== CONSECUTIVE ROW =====
+  consecutiveRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
-    paddingHorizontal: 10,
-    fontSize: 10,
+    paddingHorizontal: 5,
+    marginBottom: 8,
   },
-  detailsGrid: {
+  consecutiveText: {
+    fontFamily: 'Times',
+    fontSize: 10,
+    color: BLACK,
+  },
+  boldText: {
+    fontWeight: 'bold',
+  },
+  
+  // ===== DETAILS BOXES =====
+  detailsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: 10,
     marginBottom: 8,
   },
   detailBox: {
     flex: 1,
-    border: '1.5 solid #8b6914',
-    padding: 6,
-    backgroundColor: '#ffffff',
+    border: `1.5 solid ${GOLD}`,
+  },
+  detailBoxHeader: {
+    borderBottom: `1.5 solid ${GOLD}`,
+    padding: '4 8',
   },
   detailBoxTitle: {
-    fontSize: 11,
+    fontFamily: 'Times',
+    fontSize: 12,
     fontWeight: 'bold',
-    marginBottom: 4,
-    textAlign: 'center',
-    color: '#8b6914',
-    borderBottom: '2 solid #8b6914',
-    paddingBottom: 2,
+    color: GOLD,
     textDecoration: 'underline',
   },
-  detailText: {
+  detailBoxBody: {
+    padding: '6 8',
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    marginBottom: 1,
+  },
+  fieldLabel: {
+    fontFamily: 'Times',
     fontSize: 10,
-    lineHeight: 1.3,
-    marginTop: 2,
-    color: '#000000',
-  },
-  detailLabel: {
     fontWeight: 'bold',
+    color: BLACK,
+    width: 55,
   },
-  addressText: {
+  fieldValue: {
+    fontFamily: 'Times',
+    fontSize: 10,
+    color: BLACK,
+    flex: 1,
+  },
+  addressBlock: {
+    marginTop: 2,
+  },
+  addressTitle: {
+    fontFamily: 'Times',
     fontSize: 9,
-    marginTop: 1,
+    fontWeight: 'bold',
+    color: BLACK,
+    textDecoration: 'underline',
+    marginBottom: 0.5,
+  },
+  addressValue: {
+    fontFamily: 'Times',
+    fontSize: 8.5,
+    color: BLACK,
     lineHeight: 1.2,
   },
+  
+  // ===== SECTION BOXES =====
   sectionBox: {
-    marginTop: 6,
-    marginBottom: 6,
-    padding: '6 8',
-    backgroundColor: '#ffffff',
-    border: '1.5 solid #8b6914',
+    marginBottom: 4,
   },
   sectionTitle: {
+    fontFamily: 'Times',
     fontSize: 11,
     fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#8b6914',
+    color: GOLD,
+    textDecoration: 'underline',
   },
-  sectionText: {
-    fontSize: 10,
-    lineHeight: 1.3,
-    color: '#000000',
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 1,
   },
   sectionLabel: {
+    fontFamily: 'Times',
+    fontSize: 10,
     fontWeight: 'bold',
+    color: BLACK,
   },
-  registrationDetails: {
+  sectionValue: {
+    fontFamily: 'Times',
+    fontSize: 10,
+    color: BLACK,
+  },
+  
+  // ===== REGISTRATION DETAILS =====
+  regDetailsContent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    fontSize: 10,
-  },
-  wishStatement: {
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    fontFamily: 'Times-Roman',
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: '#8b6914',
-    fontWeight: 'normal',
-  },
-  registrarDetails: {
-    marginTop: 8,
-    marginBottom: 8,
-    padding: 6,
-    backgroundColor: '#ffffff',
-    border: '1.5 solid #8b6914',
-  },
-  registrarTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#8b6914',
-  },
-  registrarText: {
-    fontSize: 10,
-    lineHeight: 1.3,
-    color: '#000000',
+    gap: 12,
     marginTop: 1,
   },
-  registrarLabel: {
-    fontWeight: 'bold',
+  regItem: {
+    flexDirection: 'row',
   },
-  photoQrSection: {
+  
+  // ===== WISH STATEMENT =====
+  wishSection: {
+    textAlign: 'center',
+    marginVertical: 6,
+  },
+  wishText: {
+    fontFamily: 'Times',
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+    color: BLACK,
+  },
+  
+  // ===== REGISTRAR BOX =====
+  registrarBox: {
+    marginBottom: 8,
+  },
+  registrarTitle: {
+    fontFamily: 'Times',
+    fontSize: 11,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+    color: GOLD,
+    textDecoration: 'underline',
+    marginBottom: 2,
+  },
+  registrarRow: {
+    flexDirection: 'row',
+    marginBottom: 1,
+  },
+  registrarLabel: {
+    fontFamily: 'Times',
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: BLACK,
+  },
+  registrarValue: {
+    fontFamily: 'Times',
+    fontSize: 10,
+    color: BLACK,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 1,
+    gap: 25,
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  // ===== BOTTOM SECTION =====
+  bottomSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginTop: 8,
-    marginBottom: 8,
-    padding: 6,
-    backgroundColor: '#ffffff',
+    alignItems: 'flex-end',
+    marginTop: 6,
   },
-  photoContainer: {
-    width: 80,
-    height: 100,
-    border: '2 solid #8b6914',
+  couplePhotoBox: {
+    width: 150,
+    height: 90,
+    border: `1.5 solid ${GOLD}`,
     backgroundColor: '#f5f5f5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  photoPlaceholder: {
-    fontSize: 9,
-    color: '#999999',
-    textAlign: 'center',
-  },
-  qrContainer: {
+  qrSection: {
     alignItems: 'flex-end',
   },
-  qrPlaceholder: {
-    width: 70,
-    height: 70,
-    border: '2 solid #8b6914',
+  qrBox: {
+    width: 68,
+    height: 68,
+    border: `1.5 solid ${GOLD}`,
     backgroundColor: '#f5f5f5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  qrText: {
-    fontSize: 9,
-    color: '#999999',
-  },
-  verificationId: {
-    fontSize: 9,
-    marginTop: 3,
-    color: '#666666',
-    textAlign: 'right',
-  },
+  
+  // ===== SIGNATURE =====
   signatureSection: {
-    marginTop: 8,
-    textAlign: 'center',
+    marginTop: 10,
+    alignItems: 'center',
   },
-  signatureLine: {
-    fontFamily: 'Times-Roman',
+  signatureText: {
+    fontFamily: 'Times',
     fontSize: 11,
-    fontStyle: 'italic',
-    color: '#000000',
+    fontWeight: 'bold',
+    textDecoration: 'underline',
+    color: BLACK,
   },
 });
 
@@ -354,7 +445,7 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Border Image */}
+        {/* Border */}
         <View style={styles.borderContainer}>
           <Image 
             src={getImageUrl("/assets/certificate/border.png")} 
@@ -365,150 +456,207 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Header Section */}
+          {/* Header */}
           <View style={styles.header}>
-            <View style={styles.emblemContainer}>
+            <View style={styles.logosContainer}>
+              <View style={styles.emblemContainer}>
+                <Image 
+                  src={getImageUrl("/assets/certificate/emblem-india.png")} 
+                  style={styles.emblem}
+                  cache={false}
+                />
+              </View>
               <Image 
-                src={getImageUrl("/assets/certificate/emblem-india.png")} 
-                style={styles.emblem}
+                src={getImageUrl("/assets/certificate/west-bengal-logo.png")} 
+                style={styles.westBengalLogo}
                 cache={false}
               />
             </View>
-            <Text style={styles.headerTitle1}>GOVERNMENT OF WEST BENGAL</Text>
-            <Text style={styles.headerTitle2}>LAW DEPARTMENT</Text>
-            <View style={styles.officeDetails}>
-              <Text style={styles.officeName}>OFFICE OF THE MUHAMMADAN MARRIAGE REGISTRAR & QAAZI</Text>
-              <Text>VILL.& P.O. GRAMSHALIKA, P.S. BURWAN, DIST. MURSHIDABAD, PIN- 742132</Text>
-              <Text style={styles.actReference}>Under The Bengal Muhammadan Marriages and Divorces Registration Act- 1876.</Text>
+            <Text style={styles.govTitle}>GOVERNMENT OF WEST BENGAL</Text>
+            <View style={styles.lawDeptBox}>
+              <Text style={styles.lawDeptText}>LAW DEPARTMENT</Text>
             </View>
+            <Text style={styles.officeTitle}>OFFICE OF THE MUHAMMADAN MARRIAGE REGISTRAR & QAAZI</Text>
+            <Text style={styles.officeAddress}>VILL.& P.O. GRAMSHALIKA, P.S. BURWAN, DIST. MURSHIDABAD, PIN- 742132</Text>
+            <Text style={styles.actText}>Under The Bengal Muhammadan Marriages and Divorces Registration Act- 1876.</Text>
           </View>
 
           {/* Certificate Title */}
-          <View style={styles.certificateTitle}>
-            <Text style={styles.certificateTitleText}>Certificate Of Marriage</Text>
-            <Text style={styles.certificateIntro}>
+          <View style={styles.titleSection}>
+            <Text style={styles.certificateTitle}>Certificate Of Marriage</Text>
+            <Text style={styles.introText}>
               This is to certify that the marriage has been Registered in between the following bridegroom and bride details under the Bengal Muhammadan Marriages and Divorces Registration Act- 1876 & Under the Indian Qaazi's Act-1880.
             </Text>
-            <View style={styles.certificateInfo}>
-              <Text>
-                <Text style={{ fontWeight: 'bold' }}>Consecutive Number:</Text> {certificateData.consecutiveNumber}
-              </Text>
-              <Text>
-                <Text style={{ fontWeight: 'bold' }}>Registration Date:</Text> {safeFormatDate(certificateData.registrationDate, 'dd-MM-yyyy')}
-              </Text>
-            </View>
           </View>
 
-          {/* Details Grid - Groom and Bride */}
-          <View style={styles.detailsGrid}>
-            {/* Groom Details */}
+          {/* Consecutive Number Row */}
+          <View style={styles.consecutiveRow}>
+            <Text style={styles.consecutiveText}>
+              <Text style={styles.boldText}>Consecutive Number: </Text>{certificateData.consecutiveNumber}
+            </Text>
+            <Text style={styles.consecutiveText}>
+              <Text style={styles.boldText}>Registration Date: </Text>{safeFormatDate(certificateData.registrationDate, 'dd-MM-yyyy')}
+            </Text>
+          </View>
+
+          {/* Details - Groom and Bride */}
+          <View style={styles.detailsRow}>
+            {/* Groom */}
             <View style={styles.detailBox}>
-              <Text style={styles.detailBoxTitle}>Details of Groom</Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Name:</Text> {(certificateData.userFirstName + ' ' + certificateData.userLastName).toUpperCase()}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>S/O:</Text> {certificateData.userFatherName.toUpperCase()}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>DOB:</Text> {(userDetails as any).dateOfBirth ? safeFormatDate((userDetails as any).dateOfBirth, 'dd-MM-yyyy') : 'N/A'}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Aadhaar:</Text> {formatAadhaar((userDetails as any).aadhaarNumber)}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Phone No:</Text> {(userDetails as any).mobileNumber || ''}
-              </Text>
-              <Text style={[styles.detailText, styles.addressText, { marginTop: 4 }]}>
-                <Text style={styles.detailLabel}>Present Address:</Text> {userPresentAddr}
-              </Text>
-              <Text style={[styles.detailText, styles.addressText, { marginTop: 4 }]}>
-                <Text style={styles.detailLabel}>Permanent Address:</Text> {userPermanentAddr}
-              </Text>
+              <View style={styles.detailBoxHeader}>
+                <Text style={styles.detailBoxTitle}>Details of Groom</Text>
+              </View>
+              <View style={styles.detailBoxBody}>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Name:</Text>
+                  <Text style={styles.fieldValue}>{(certificateData.userFirstName + ' ' + certificateData.userLastName).toUpperCase()}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>S/O:</Text>
+                  <Text style={styles.fieldValue}>{certificateData.userFatherName.toUpperCase()}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>DOB:</Text>
+                  <Text style={styles.fieldValue}>{(userDetails as any).dateOfBirth ? safeFormatDate((userDetails as any).dateOfBirth, 'dd-MM-yyyy') : 'N/A'}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Aadhaar:</Text>
+                  <Text style={styles.fieldValue}>{formatAadhaar((userDetails as any).aadhaarNumber)}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Phone No:</Text>
+                  <Text style={styles.fieldValue}>{(userDetails as any).mobileNumber || ''}</Text>
+                </View>
+                <View style={styles.addressBlock}>
+                  <Text style={styles.addressTitle}>Present Address:</Text>
+                  <Text style={styles.addressValue}>{userPresentAddr}</Text>
+                </View>
+                <View style={styles.addressBlock}>
+                  <Text style={styles.addressTitle}>Permanent Address:</Text>
+                  <Text style={styles.addressValue}>{userPermanentAddr}</Text>
+                </View>
+              </View>
             </View>
 
-            {/* Bride Details */}
+            {/* Bride */}
             <View style={styles.detailBox}>
-              <Text style={styles.detailBoxTitle}>Details of Bride</Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Name:</Text> {(certificateData.partnerFirstName + ' ' + certificateData.partnerLastName).toUpperCase()}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>D/O:</Text> {certificateData.partnerFatherName.toUpperCase()}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>DOB:</Text> {(partnerDetails as any).dateOfBirth ? safeFormatDate((partnerDetails as any).dateOfBirth, 'dd-MM-yyyy') : 'N/A'}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Aadhaar:</Text> {formatAadhaar((partnerDetails as any).aadhaarNumber || (partnerDetails as any).idNumber)}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Phone No:</Text> {(partnerDetails as any).mobileNumber || ''}
-              </Text>
-              <Text style={[styles.detailText, styles.addressText, { marginTop: 4 }]}>
-                <Text style={styles.detailLabel}>Present Address:</Text> {partnerPresentAddr}
-              </Text>
-              <Text style={[styles.detailText, styles.addressText, { marginTop: 4 }]}>
-                <Text style={styles.detailLabel}>Permanent Address:</Text> {partnerPermanentAddr}
-              </Text>
+              <View style={styles.detailBoxHeader}>
+                <Text style={styles.detailBoxTitle}>Details of Bride</Text>
+              </View>
+              <View style={styles.detailBoxBody}>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Name:</Text>
+                  <Text style={styles.fieldValue}>{(certificateData.partnerFirstName + ' ' + certificateData.partnerLastName).toUpperCase()}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>D/O:</Text>
+                  <Text style={styles.fieldValue}>{certificateData.partnerFatherName.toUpperCase()}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>DOB:</Text>
+                  <Text style={styles.fieldValue}>{(partnerDetails as any).dateOfBirth ? safeFormatDate((partnerDetails as any).dateOfBirth, 'dd-MM-yyyy') : 'N/A'}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Aadhaar:</Text>
+                  <Text style={styles.fieldValue}>{formatAadhaar((partnerDetails as any).aadhaarNumber || (partnerDetails as any).idNumber)}</Text>
+                </View>
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Phone No:</Text>
+                  <Text style={styles.fieldValue}>{(partnerDetails as any).mobileNumber || ''}</Text>
+                </View>
+                <View style={styles.addressBlock}>
+                  <Text style={styles.addressTitle}>Present Address:</Text>
+                  <Text style={styles.addressValue}>{partnerPresentAddr}</Text>
+                </View>
+                <View style={styles.addressBlock}>
+                  <Text style={styles.addressTitle}>Permanent Address:</Text>
+                  <Text style={styles.addressValue}>{partnerPermanentAddr}</Text>
+                </View>
+              </View>
             </View>
           </View>
 
           {/* Social Marriage Details */}
           <View style={styles.sectionBox}>
-            <Text style={styles.sectionText}>
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#8b6914' }}>Social Marriage Details:</Text> <Text style={styles.sectionLabel}>Date of Marriage:</Text> {safeFormatDate(certificateData.marriageDate, 'dd-MM-yyyy')}
-            </Text>
+            <Text style={styles.sectionTitle}>Social Marriage Details:</Text>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionLabel}>Date of Marriage:    </Text>
+              <Text style={styles.sectionValue}>{safeFormatDate(certificateData.marriageDate, 'dd-MM-yyyy')}</Text>
+            </View>
           </View>
 
           {/* Registration Details */}
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>Registration Details:</Text>
-            <Text style={styles.sectionText}>
-              <Text style={styles.sectionLabel}>Date:</Text> {safeFormatDate(certificateData.registrationDate, 'dd-MM-yyyy')}, <Text style={styles.sectionLabel}>Book No:</Text> {certificateData.book}, <Text style={styles.sectionLabel}>Vol No:</Text> {certificateData.volNo}, <Text style={styles.sectionLabel}>Serial No:</Text> {certificateData.serialNo}, <Text style={styles.sectionLabel}>Page:</Text> {certificateData.page}.
-            </Text>
+            <View style={styles.regDetailsContent}>
+              <View style={styles.regItem}>
+                <Text style={styles.sectionLabel}>Date: </Text>
+                <Text style={styles.sectionValue}>{safeFormatDate(certificateData.registrationDate, 'dd-MM-yyyy')}</Text>
+              </View>
+              <View style={styles.regItem}>
+                <Text style={styles.sectionLabel}>Book: </Text>
+                <Text style={styles.sectionValue}>{certificateData.book}</Text>
+              </View>
+              <View style={styles.regItem}>
+                <Text style={styles.sectionLabel}>Vol No: </Text>
+                <Text style={styles.sectionValue}>{certificateData.volNo}</Text>
+              </View>
+              <View style={styles.regItem}>
+                <Text style={styles.sectionLabel}>Serial No: </Text>
+                <Text style={styles.sectionValue}>{certificateData.serialNo},</Text>
+              </View>
+              <View style={styles.regItem}>
+                <Text style={styles.sectionLabel}>Page: </Text>
+                <Text style={styles.sectionValue}>{certificateData.page}.</Text>
+              </View>
+            </View>
           </View>
 
-          {/* Wish Statement */}
-          <Text style={styles.wishStatement}>I wish them All Successful Life.</Text>
+          {/* Wish */}
+          <View style={styles.wishSection}>
+            <Text style={styles.wishText}>I wish them All Successful Life.</Text>
+          </View>
 
           {/* Registrar Details */}
-          <View style={styles.registrarDetails}>
+          <View style={styles.registrarBox}>
             <Text style={styles.registrarTitle}>Muhammadan Marriage Registrar & Qaazi Details:</Text>
-            <Text style={styles.registrarText}>
-              <Text style={styles.registrarLabel}>Name:</Text> {certificateData.registrarName}
-            </Text>
-            <Text style={styles.registrarText}>
-              <Text style={styles.registrarLabel}>Licence No:</Text> {certificateData.registrarLicense}.
-            </Text>
-            <Text style={styles.registrarText}>
-              <Text style={styles.registrarLabel}>Office Address:</Text> {certificateData.registrarOffice}.
-            </Text>
-            <Text style={[styles.registrarText, { marginTop: 2 }]}>
-              <Text style={styles.registrarLabel}>Contact:</Text> {certificateData.registrarPhone} {certificateData.registrarEmail}
-            </Text>
-          </View>
-
-          {/* Photo and QR Section */}
-          <View style={styles.photoQrSection}>
-            <View style={styles.photoContainer}>
-              <Text style={styles.photoPlaceholder}>Couple Photo</Text>
+            <View style={styles.registrarRow}>
+              <Text style={styles.registrarLabel}>Name: </Text>
+              <Text style={styles.registrarValue}>{certificateData.registrarName}</Text>
             </View>
-            <View style={styles.qrContainer}>
-              <View style={styles.qrPlaceholder}>
-                <Text style={styles.qrText}>QR Code</Text>
+            <View style={styles.registrarRow}>
+              <Text style={styles.registrarLabel}>Licence No: </Text>
+              <Text style={styles.registrarValue}>{certificateData.registrarLicense}</Text>
+            </View>
+            <View style={styles.registrarRow}>
+              <Text style={styles.registrarLabel}>Office Address: </Text>
+              <Text style={styles.registrarValue}>{certificateData.registrarOffice}</Text>
+            </View>
+            <View style={styles.contactRow}>
+              <View style={styles.contactItem}>
+                <Text style={styles.registrarLabel}>Contact: </Text>
+                <Text style={styles.registrarValue}>{certificateData.registrarPhone}</Text>
               </View>
-              <Text style={styles.verificationId}>Verification ID: {certificateData.verificationId}</Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.registrarValue}>{certificateData.registrarEmail}</Text>
+              </View>
             </View>
           </View>
 
-          {/* Signature Section */}
+          {/* Bottom - Couple Photo and QR */}
+          <View style={styles.bottomSection}>
+            <View style={styles.couplePhotoBox} />
+            <View style={styles.qrSection}>
+              <View style={styles.qrBox} />
+            </View>
+          </View>
+
+          {/* Signature */}
           <View style={styles.signatureSection}>
-            <Text style={styles.signatureLine}>Signature of Registrar with Seal</Text>
+            <Text style={styles.signatureText}>Signature of Registrar with Seal</Text>
           </View>
         </View>
       </Page>
     </Document>
   );
 };
-

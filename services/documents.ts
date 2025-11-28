@@ -21,7 +21,8 @@ export const documentService = {
       });
 
     if (uploadError) {
-      throw new Error(uploadError.message);
+      console.error('Storage upload error:', uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
     }
 
     // Get public URL
@@ -49,9 +50,14 @@ export const documentService = {
       .single();
 
     if (error) {
+      console.error('Database insert error:', error);
       // If document insert fails, try to delete uploaded file
-      await supabase.storage.from('documents').remove([filePath]);
-      throw new Error(error.message);
+      try {
+        await supabase.storage.from('documents').remove([filePath]);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup uploaded file:', cleanupError);
+      }
+      throw new Error(`Database insert failed: ${error.message}`);
     }
 
     return {

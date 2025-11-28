@@ -32,9 +32,15 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/settings', icon: Settings, label: 'Settings' },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/auth/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Navigate anyway to ensure user is redirected
+      navigate('/');
+    }
   };
 
   return (

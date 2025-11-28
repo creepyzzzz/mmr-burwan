@@ -25,6 +25,9 @@ const MagicLinkPage: React.FC = () => {
   // Supabase sends token_hash and type as query params
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type');
+  const code = searchParams.get('code');
+  const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
 
   const {
     register,
@@ -35,11 +38,28 @@ const MagicLinkPage: React.FC = () => {
   });
 
   useEffect(() => {
-    // Check if we have token_hash and type from Supabase redirect
+    // Check if we have token_hash and type from Supabase redirect (for magic links)
     if (tokenHash && type === 'email') {
       handleVerifyToken(tokenHash);
+      return;
     }
-  }, [tokenHash, type]);
+
+    // Handle OAuth callback (Google, etc.)
+    // Supabase OAuth redirects will have code or error in URL
+    if (error) {
+      showToast(errorDescription || 'Authentication failed. Please try again.', 'error');
+      navigate('/auth/login');
+      return;
+    }
+
+    // If we have a code, Supabase is handling the OAuth flow
+    // The session will be created automatically by Supabase
+    // We just need to wait a moment and check for the session
+    if (code) {
+      handleOAuthCallback();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenHash, type, code, error, errorDescription]);
 
   const handleVerifyToken = async (tokenHash: string) => {
     setIsLoading(true);
@@ -57,6 +77,43 @@ const MagicLinkPage: React.FC = () => {
       }
     } catch (error: any) {
       showToast(error.message || 'Invalid or expired magic link', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuthCallback = async () => {
+    setIsLoading(true);
+    try {
+      // Supabase with detectSessionInUrl: true will automatically process the OAuth callback
+      // We need to wait a bit for it to complete, then check for the session
+      // Poll for session up to 5 seconds
+      let currentUser = null;
+      for (let i = 0; i < 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          break;
+        }
+      }
+      
+      if (currentUser) {
+        showToast('Successfully signed in!', 'success');
+        
+        // Redirect based on user role
+        if (currentUser.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        // If no user after OAuth, something went wrong
+        showToast('Authentication failed. Please try again.', 'error');
+        navigate('/auth/login');
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Authentication failed. Please try again.', 'error');
+      navigate('/auth/login');
     } finally {
       setIsLoading(false);
     }

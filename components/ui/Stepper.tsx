@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 
 interface Step {
   id: string;
@@ -32,11 +32,11 @@ const Stepper: React.FC<StepperProps> = ({
           
           return (
             <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-col items-center flex-1 relative">
                 {/* Step Circle */}
                 <div
                   className={`
-                    w-10 h-10 rounded-full flex items-center justify-center
+                    w-10 h-10 rounded-full flex items-center justify-center relative z-10
                     transition-all duration-300
                     ${completed
                       ? 'bg-gold-500 text-white shadow-md'
@@ -52,6 +52,26 @@ const Stepper: React.FC<StepperProps> = ({
                     <span className="text-sm font-medium">{index + 1}</span>
                   )}
                 </div>
+                
+                {/* Connector Arrow - positioned absolutely to align with circle center */}
+                {index < steps.length - 1 && (
+                  <div 
+                    className="absolute top-0 left-full z-0 flex items-center justify-center"
+                    style={{ 
+                      width: '24px',
+                      height: '40px',
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
+                    <ChevronRight
+                      size={20}
+                      className={`
+                        transition-all duration-300
+                        ${completed ? 'text-gold-500' : 'text-gray-300'}
+                      `}
+                    />
+                  </div>
+                )}
                 
                 {/* Step Label */}
                 <div className="mt-3 text-center max-w-[120px]">
@@ -70,16 +90,6 @@ const Stepper: React.FC<StepperProps> = ({
                   )}
                 </div>
               </div>
-              
-              {/* Connector Line */}
-              {index < steps.length - 1 && (
-                <div
-                  className={`
-                    flex-1 h-0.5 mx-2 transition-all duration-300
-                    ${completed ? 'bg-gold-500' : 'bg-gray-200'}
-                  `}
-                />
-              )}
             </React.Fragment>
           );
         })}

@@ -3,8 +3,13 @@ import { Document, Page, Text, View, Image, StyleSheet, Font } from '@react-pdf/
 import { Application } from '../../types';
 import { safeFormatDate } from '../../utils/dateUtils';
 
-// Helper function to get image URL
+// Helper function to get image URL for local assets
 const getImageUrl = (path: string): string => {
+  // If it's already a full URL (http/https), return as-is
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  // For relative paths (local assets), prepend origin
   if (typeof window !== 'undefined') {
     return `${window.location.origin}${path}`;
   }
@@ -464,6 +469,12 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
   const partnerPresentAddr = formatAddress(partnerCurrentAddress.street ? partnerCurrentAddress : partnerAddress);
   const partnerPermanentAddr = formatAddress(partnerAddress);
 
+  // Find joint photograph from documents
+  const jointPhotograph = application.documents?.find(
+    (doc) => doc.type === 'photo' && doc.belongsTo === 'joint'
+  );
+  const jointPhotoUrl = jointPhotograph ? getImageUrl(jointPhotograph.url) : null;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -685,7 +696,15 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
 
           {/* Bottom - Couple Photo and QR */}
           <View style={styles.bottomSection}>
-            <View style={styles.couplePhotoBox} />
+            <View style={styles.couplePhotoBox}>
+              {jointPhotoUrl ? (
+                <Image 
+                  src={jointPhotoUrl} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  cache={false}
+                />
+              ) : null}
+            </View>
             <View style={styles.qrSection}>
               <View style={styles.qrBox} />
             </View>

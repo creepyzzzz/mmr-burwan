@@ -10,6 +10,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
+import VerifyApplicationModal from '../../components/admin/VerifyApplicationModal';
 import { Users, Search, Eye, MessageSquare, FileCheck, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
 
@@ -28,6 +29,15 @@ const ClientsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [verifyModalState, setVerifyModalState] = useState<{
+    isOpen: boolean;
+    applicationId: string;
+    certificateNumber?: string;
+    registrationDate?: string;
+  }>({
+    isOpen: false,
+    applicationId: '',
+  });
 
   useEffect(() => {
     const loadClients = async () => {
@@ -66,6 +76,41 @@ const ClientsPage: React.FC = () => {
 
     loadClients();
   }, []);
+
+  const handleVerify = async (certificateNumber: string, registrationDate: string) => {
+    if (!user) return;
+    
+    try {
+      await adminService.verifyApplication(
+        verifyModalState.applicationId,
+        user.id,
+        user.name || user.email,
+        certificateNumber,
+        registrationDate
+      );
+      showToast('Application verified successfully', 'success');
+      
+      // Reload clients
+      const applications = await adminService.getAllApplications();
+      const userIds = [...new Set(applications.map(app => app.userId))];
+      const clientsData = await Promise.all(
+        userIds.map(async (userId) => {
+          const [profile, application] = await Promise.all([
+            profileService.getProfile(userId),
+            applicationService.getApplication(userId),
+          ]);
+          return { userId, profile, application };
+        })
+      );
+      setClients(clientsData);
+      setFilteredClients(clientsData);
+      
+      setVerifyModalState({ isOpen: false, applicationId: '' });
+    } catch (error: any) {
+      showToast(error.message || 'Failed to verify application', 'error');
+      throw error;
+    }
+  };
 
   useEffect(() => {
     let filtered = clients;
@@ -282,32 +327,13 @@ const ClientsPage: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={async () => {
-                                  try {
-                                    await adminService.verifyApplication(
-                                      client.application!.id,
-                                      user?.id || 'admin-1',
-                                      user?.name || 'Admin User'
-                                    );
-                                    showToast('Application verified successfully', 'success');
-                                    // Reload clients
-                                    const applications = await adminService.getAllApplications();
-                                    const userIds = [...new Set(applications.map(app => app.userId))];
-                                    const clientsData = await Promise.all(
-                                      userIds.map(async (userId) => {
-                                        const [profile, application] = await Promise.all([
-                                          profileService.getProfile(userId),
-                                          applicationService.getApplication(userId),
-                                        ]);
-                                        return { userId, profile, application };
-                                      })
-                                    );
-                                    setClients(clientsData);
-                                    setFilteredClients(clientsData);
-                                  } catch (error) {
-                                    showToast('Failed to verify application', 'error');
-                                    console.error('Failed to verify:', error);
-                                  }
+                                onClick={() => {
+                                  setVerifyModalState({
+                                    isOpen: true,
+                                    applicationId: client.application!.id,
+                                    certificateNumber: client.application?.certificateNumber,
+                                    registrationDate: client.application?.registrationDate,
+                                  });
                                 }}
                               >
                                 <CheckCircle size={16} className="mr-1" />
@@ -332,6 +358,16 @@ const ClientsPage: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Verify Application Modal */}
+      <VerifyApplicationModal
+        isOpen={verifyModalState.isOpen}
+        onClose={() => setVerifyModalState({ isOpen: false, applicationId: '' })}
+        onConfirm={handleVerify}
+        applicationId={verifyModalState.applicationId}
+        currentCertificateNumber={verifyModalState.certificateNumber}
+        currentRegistrationDate={verifyModalState.registrationDate}
+      />
     </div>
   );
 };

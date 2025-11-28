@@ -12,6 +12,7 @@ interface FileUploadProps {
   error?: string;
   label?: string;
   helperText?: string;
+  disabled?: boolean;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -24,6 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   error,
   label,
   helperText,
+  disabled = false,
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -107,18 +109,20 @@ const FileUpload: React.FC<FileUploadProps> = ({
       
       {/* Drop Zone */}
       <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
+        onDragOver={disabled ? undefined : handleDragOver}
+        onDragLeave={disabled ? undefined : handleDragLeave}
+        onDrop={disabled ? undefined : handleDrop}
+        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
         className={`
-          border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
+          border-2 border-dashed rounded-xl p-8 text-center
           transition-all duration-200
-          ${isDragging
-            ? 'border-gold-500 bg-gold-50'
+          ${disabled
+            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+            : isDragging
+            ? 'border-gold-500 bg-gold-50 cursor-pointer'
             : error
-            ? 'border-rose-300 bg-rose-50'
-            : 'border-gray-300 hover:border-gold-400 hover:bg-gold-50/30'
+            ? 'border-rose-300 bg-rose-50 cursor-pointer'
+            : 'border-gray-300 hover:border-gold-400 hover:bg-gold-50/30 cursor-pointer'
           }
         `}
       >
@@ -128,6 +132,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           accept={accept}
           multiple={maxFiles > 1}
           onChange={handleFileInput}
+          disabled={disabled}
           className="hidden"
         />
         

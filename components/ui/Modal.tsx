@@ -50,18 +50,18 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+      {/* Backdrop - very subtle */}
+      <div className="fixed inset-0 bg-black/10" />
       
       {/* Modal */}
       <div
         className={`
-          relative z-10 w-full ${sizeClasses[size]}
+          relative z-10 w-full ${sizeClasses[size]} my-auto
           bg-white rounded-3xl shadow-2xl
           animate-fade-up
         `}
@@ -88,7 +88,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
         
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto max-h-[calc(100vh-8rem)]">
           {children}
         </div>
       </div>

@@ -38,11 +38,16 @@ export interface PartnerDetails {
 }
 
 export interface Address {
-  street: string;
-  city: string;
+  villageStreet: string;
+  postOffice: string;
+  policeStation: string;
+  district: string;
   state: string;
   zipCode: string;
   country: string;
+  // Legacy fields for backward compatibility
+  street?: string;
+  city?: string;
 }
 
 export interface UserDetails {
@@ -66,11 +71,13 @@ export interface Application {
   partnerCurrentAddress?: Address;
   address?: Address; // Keep for backward compatibility
   currentAddress?: Address; // Keep for backward compatibility
-  declarations?: Record<string, boolean>;
+  declarations?: Record<string, boolean | string>; // Allow both boolean (consent, accuracy, legal) and string (marriageDate)
   documents: Document[];
   verified?: boolean; // Admin verification status
   verifiedAt?: string;
   verifiedBy?: string;
+  certificateNumber?: string; // Certificate number set by admin during verification
+  registrationDate?: string; // Registration date set by admin during verification
   submittedAt?: string;
   lastUpdated: string;
 }
@@ -85,7 +92,8 @@ export interface Document {
   uploadedAt: string;
   size: number;
   mimeType: string;
-  belongsTo?: 'user' | 'partner'; // To identify if document belongs to user or partner
+  belongsTo?: 'user' | 'partner' | 'joint'; // To identify if document belongs to user, partner, or joint
+  isReuploaded?: boolean; // Indicates if this document was re-uploaded after being rejected
 }
 
 export interface Message {
@@ -150,5 +158,17 @@ export interface AuditLog {
   resourceId: string;
   details?: Record<string, any>;
   timestamp: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  applicationId?: string;
+  documentId?: string;
+  type: 'document_rejected' | 'document_approved' | 'application_approved' | 'application_rejected' | 'other';
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
 }
 

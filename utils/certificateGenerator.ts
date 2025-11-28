@@ -52,6 +52,48 @@ const formatAddress = (address: any): string => {
   return parts.length > 0 ? parts.join(', ') : 'N/A';
 };
 
+// Parse certificate number: "WB-MSD-BRW-I-1-C-2024-16-2025-21"
+const parseCertificateNumber = (certNumber: string | undefined) => {
+  if (!certNumber) {
+    const currentYear = new Date().getFullYear();
+    return {
+      book: 'I',
+      volumeNumber: '1',
+      volumeLetter: 'C',
+      volumeYear: currentYear.toString(),
+      serialNumber: '1',
+      serialYear: (currentYear + 1).toString(),
+      pageNumber: '1',
+    };
+  }
+
+  // Format: WB-MSD-BRW-{book}-{volumeNumber}-{volumeLetter}-{volumeYear}-{serialNumber}-{serialYear}-{pageNumber}
+  const parts = certNumber.split('-');
+  if (parts.length >= 10 && parts[0] === 'WB' && parts[1] === 'MSD' && parts[2] === 'BRW') {
+    return {
+      book: parts[3] || 'I',
+      volumeNumber: parts[4] || '1',
+      volumeLetter: parts[5] || 'C',
+      volumeYear: parts[6] || new Date().getFullYear().toString(),
+      serialNumber: parts[7] || '1',
+      serialYear: parts[8] || (new Date().getFullYear() + 1).toString(),
+      pageNumber: parts[9] || '1',
+    };
+  }
+
+  // Fallback to defaults
+  const currentYear = new Date().getFullYear();
+  return {
+    book: 'I',
+    volumeNumber: '1',
+    volumeLetter: 'C',
+    volumeYear: currentYear.toString(),
+    serialNumber: '1',
+    serialYear: (currentYear + 1).toString(),
+    pageNumber: '1',
+  };
+};
+
 export const generateCertificateData = (application: Application) => {
   const userDetails = application.userDetails || {};
   const partnerDetails = (application as any).partnerDetails || (application as any).partnerForm || {};
@@ -60,20 +102,32 @@ export const generateCertificateData = (application: Application) => {
   const partnerRandomName = generateRandomName();
   
   const currentYear = new Date().getFullYear();
-  const registrationDate = application.verifiedAt || application.submittedAt || new Date().toISOString();
-  const marriageDate = application.submittedAt || new Date().toISOString();
   
-  const consecutiveNumber = `WB-MSD-BRW-I-1-C-${currentYear}-${Math.floor(Math.random() * 50) + 1}-${currentYear + 1}-${Math.floor(Math.random() * 30) + 1}`;
+  // Use stored registration date and certificate number if available, otherwise generate defaults
+  const registrationDate = application.registrationDate || application.verifiedAt || application.submittedAt || new Date().toISOString();
+  const marriageDate = (application.declarations as any)?.marriageDate || application.submittedAt || new Date().toISOString();
+  
+  // Use stored certificate number if available, otherwise generate a default
+  const consecutiveNumber = application.certificateNumber || `WB-MSD-BRW-I-1-C-${currentYear}-${Math.floor(Math.random() * 50) + 1}-${currentYear + 1}-${Math.floor(Math.random() * 30) + 1}`;
   const verificationId = `MMR-BW-${currentYear}-${String(Date.now()).slice(-6)}`;
+  
+  // Parse certificate number to extract components
+  const certParts = parseCertificateNumber(application.certificateNumber || consecutiveNumber);
+  
+  // Format volume number: "1-C/2024"
+  const volNo = `${certParts.volumeNumber}-${certParts.volumeLetter}/${certParts.volumeYear}`;
+  
+  // Format serial number: "3/2026"
+  const serialNo = `${certParts.serialNumber}/${certParts.serialYear}`;
   
   return {
     verificationId,
     registrationDate,
     consecutiveNumber,
-    book: 'I',
-    volNo: '1-C/2024',
-    serialNo: `${Math.floor(Math.random() * 50) + 1}/${currentYear + 1}`,
-    page: String(Math.floor(Math.random() * 30) + 1),
+    book: certParts.book,
+    volNo: volNo,
+    serialNo: serialNo,
+    page: certParts.pageNumber,
     marriageDate,
     registrarName: 'MINHAJUL ISLAM KHAN',
     registrarLicense: '04L(St.)/LW/O/St./4M-123/2019',

@@ -6,7 +6,7 @@ export const documentService = {
     applicationId: string,
     file: File,
     type: Document['type'],
-    belongsTo?: 'user' | 'partner'
+    belongsTo?: 'user' | 'partner' | 'joint'
   ): Promise<Document> {
     // Upload file to Supabase Storage
     const fileExt = file.name.split('.').pop();
@@ -71,6 +71,7 @@ export const documentService = {
       size: data.size,
       mimeType: data.mime_type,
       belongsTo: data.belongs_to,
+      isReuploaded: false, // New uploads are never re-uploads
     };
   },
 
@@ -96,6 +97,7 @@ export const documentService = {
       size: doc.size,
       mimeType: doc.mime_type,
       belongsTo: doc.belongs_to,
+      isReuploaded: doc.is_reuploaded || false,
     }));
   },
 
@@ -160,6 +162,7 @@ export const documentService = {
       size: data.size,
       mimeType: data.mime_type,
       belongsTo: data.belongs_to,
+      isReuploaded: data.is_reuploaded || false,
     };
   },
 
@@ -186,6 +189,115 @@ export const documentService = {
       size: data.size,
       mimeType: data.mime_type,
       belongsTo: data.belongs_to,
+      isReuploaded: data.is_reuploaded || false,
+    };
+  },
+
+  /**
+   * Replace a rejected document with a new file
+   * This updates the existing document record instead of creating a new one
+   */
+  async replaceRejectedDocument(documentId: string, file: File): Promise<Document> {
+    // Get the existing document to preserve type and belongs_to
+    const { data: existingDoc, error: fetchError } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', documentId)
+      .single();
+
+    if (fetchError || !existingDoc) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDoc.status !== 'rejected') {
+      throw new Error('Can only replace rejected documents');
+    }
+
+    // Delete old file from storage if file_path exists
+    if (existingDoc.file_path) {
+      try {
+        await supabase.storage.from('documents').remove([existingDoc.file_path]);
+      } catch (storageError) {
+        console.error('Failed to delete old file from storage:', storageError);
+        // Continue even if old file deletion fails
+      }
+    }
+
+    // Upload new file to Supabase Storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${existingDoc.application_id}/${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath);
+
+    const documentUrl = urlData.publicUrl;
+
+    // Update the existing document record with new file info and reset status to pending
+    // Mark as re-uploaded since this is a replacement for a rejected document
+    const { error: updateError } = await supabase
+      .from('documents')
+      .update({
+        name: file.name,
+        url: documentUrl,
+        file_path: filePath,
+        status: 'pending',
+        size: file.size,
+        mime_type: file.type,
+        uploaded_at: new Date().toISOString(),
+        is_reuploaded: true,
+      })
+      .eq('id', documentId);
+
+    if (updateError) {
+      console.error('Database update error:', updateError);
+      // If update fails, try to delete uploaded file
+      try {
+        await supabase.storage.from('documents').remove([filePath]);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup uploaded file:', cleanupError);
+      }
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
+
+    // Fetch the updated document separately to avoid JSON coercion issues
+    const { data: updatedDoc, error: fetchUpdatedError } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', documentId)
+      .single();
+
+    if (fetchUpdatedError || !updatedDoc) {
+      console.error('Failed to fetch updated document:', fetchUpdatedError);
+      throw new Error('Failed to retrieve updated document');
+    }
+
+    return {
+      id: updatedDoc.id,
+      applicationId: updatedDoc.application_id,
+      type: updatedDoc.type,
+      name: updatedDoc.name,
+      url: updatedDoc.url,
+      status: updatedDoc.status,
+      uploadedAt: updatedDoc.uploaded_at,
+      size: updatedDoc.size,
+      mimeType: updatedDoc.mime_type,
+      belongsTo: updatedDoc.belongs_to,
+      isReuploaded: updatedDoc.is_reuploaded || false,
     };
   },
 

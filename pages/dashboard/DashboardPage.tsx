@@ -23,6 +23,8 @@ import {
   CheckCircle,
   LogOut
 } from 'lucide-react';
+import NotificationIcon from '../../components/ui/NotificationIcon';
+import NotificationPanel from '../../components/ui/NotificationPanel';
 import { safeFormatDate, safeFormatDateObject } from '../../utils/dateUtils';
 import { downloadCertificate } from '../../utils/certificateGenerator';
 
@@ -36,6 +38,7 @@ const DashboardPage: React.FC = () => {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
 
   const loadData = async () => {
     if (!user) {
@@ -86,13 +89,72 @@ const DashboardPage: React.FC = () => {
   }
 
   const applicationSteps = [
-    { id: '1', label: 'Partner', description: 'Partner details' },
-    { id: '2', label: 'Address', description: 'Address information' },
-    { id: '3', label: 'Documents', description: 'Upload documents' },
-    { id: '4', label: 'Review', description: 'Review & submit' },
+    { id: 'groom', label: 'Groom Details' },
+    { id: 'bride', label: 'Bride Details' },
+    { id: 'documents', label: 'Documents' },
+    { id: 'confirmation', label: 'Confirmation' },
+    { id: 'review', label: 'Review' },
   ];
 
-  const currentStep = application ? Math.floor((application.progress / 100) * applicationSteps.length) : 0;
+  // Calculate current step based on actual data filled
+  const getCurrentStep = () => {
+    if (!application) return 0;
+    
+    // Check if groom details are filled
+    const hasGroomDetails = application.userDetails?.firstName && 
+                            application.userDetails?.lastName &&
+                            application.userDetails?.dateOfBirth &&
+                            application.userDetails?.aadhaarNumber &&
+                            application.userDetails?.mobileNumber;
+    const hasGroomAddress = (application.userAddress as any)?.villageStreet || 
+                            application.userAddress?.street;
+    const hasGroomCurrentAddress = (application.userCurrentAddress as any)?.villageStreet || 
+                                   application.userCurrentAddress?.street;
+    const hasMarriageDate = (application.declarations as any)?.marriageDate;
+    
+    if (!hasGroomDetails || !hasGroomAddress || !hasGroomCurrentAddress || !hasMarriageDate) {
+      return 0; // Still on groom details step
+    }
+    
+    // Check if bride details are filled
+    const hasBrideDetails = application.partnerForm?.firstName && 
+                            application.partnerForm?.lastName &&
+                            application.partnerForm?.dateOfBirth &&
+                            ((application.partnerForm as any)?.aadhaarNumber || (application.partnerForm as any)?.idNumber);
+    const hasBrideAddress = (application.partnerAddress as any)?.villageStreet || 
+                            application.partnerAddress?.street;
+    const hasBrideCurrentAddress = (application.partnerCurrentAddress as any)?.villageStreet || 
+                                   application.partnerCurrentAddress?.street;
+    
+    if (!hasBrideDetails || !hasBrideAddress || !hasBrideCurrentAddress) {
+      return 1; // Still on bride details step
+    }
+    
+    // Check if documents are uploaded (need 5 documents: groom aadhaar, groom 2nd doc, bride aadhaar, bride 2nd doc, joint photo)
+    const documents = application.documents || [];
+    const userAadhaar = documents.find(d => d.belongsTo === 'user' && d.type === 'aadhaar');
+    const userSecondDoc = documents.find(d => d.belongsTo === 'user' && (d.type === 'tenth_certificate' || d.type === 'voter_id'));
+    const partnerAadhaar = documents.find(d => d.belongsTo === 'partner' && d.type === 'aadhaar');
+    const partnerSecondDoc = documents.find(d => d.belongsTo === 'partner' && (d.type === 'tenth_certificate' || d.type === 'voter_id'));
+    const jointPhotograph = documents.find(d => d.belongsTo === 'joint' && d.type === 'photo');
+    
+    if (!userAadhaar || !userSecondDoc || !partnerAadhaar || !partnerSecondDoc || !jointPhotograph) {
+      return 2; // Still on documents step
+    }
+    
+    // Check if declarations are filled
+    const hasDeclarations = application.declarations?.consent && 
+                            application.declarations?.accuracy && 
+                            application.declarations?.legal;
+    
+    if (!hasDeclarations) {
+      return 3; // Still on confirmation step
+    }
+    
+    return 4; // All steps completed, on review step
+  };
+
+  const currentStep = getCurrentStep();
 
   const handleLogout = async () => {
     try {
@@ -113,15 +175,30 @@ const DashboardPage: React.FC = () => {
           </h1>
           <p className="text-gray-600">Here's your registration progress</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
-        >
-          <LogOut size={18} />
-          <span>Logout</span>
-        </Button>
+        <div className="flex items-center gap-3">
+          {user && (
+            <>
+              <NotificationIcon
+                userId={user.id}
+                onOpenPanel={() => setIsNotificationPanelOpen(true)}
+              />
+              <NotificationPanel
+                userId={user.id}
+                isOpen={isNotificationPanelOpen}
+                onClose={() => setIsNotificationPanelOpen(false)}
+              />
+            </>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -299,119 +376,84 @@ const DashboardPage: React.FC = () => {
                     Verified on {safeFormatDate(application.verifiedAt, 'MMMM d, yyyy')}
                   </p>
                 )}
+                {application.certificateNumber && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Certificate Number: {application.certificateNumber}
+                  </p>
+                )}
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full"
-                onClick={async () => {
-                  if (application) {
-                    try {
-                      await downloadCertificate(application);
-                      showToast('Certificate downloaded successfully', 'success');
-                    } catch (error) {
-                      console.error('Failed to download certificate:', error);
-                      showToast('Failed to download certificate', 'error');
+              {certificate ? (
+                <div className="space-y-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => navigate(`/verify/${certificate.verificationId}`)}
+                  >
+                    <Award size={16} className="mr-2" />
+                    View Certificate
+                    <ArrowRight size={16} className="ml-2" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={async () => {
+                      if (application) {
+                        try {
+                          await downloadCertificate(application);
+                          showToast('Certificate downloaded successfully', 'success');
+                        } catch (error) {
+                          console.error('Failed to download certificate:', error);
+                          showToast('Failed to download certificate', 'error');
+                        }
+                      }
+                    }}
+                  >
+                    Download Certificate PDF
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    if (application) {
+                      try {
+                        await downloadCertificate(application);
+                        showToast('Certificate downloaded successfully', 'success');
+                      } catch (error) {
+                        console.error('Failed to download certificate:', error);
+                        showToast('Failed to download certificate', 'error');
+                      }
                     }
-                  }
-                }}
-              >
-                <Award size={16} className="mr-2" />
-                Download Certificate
-              </Button>
-            </div>
-          ) : application ? (
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Test Certificate</p>
-                <p className="font-medium text-gray-900">
-                  Download template with random names
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Your application is not yet verified. This is a test certificate.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={async () => {
-                  if (application) {
-                    try {
-                      await downloadCertificate(application);
-                      showToast('Test certificate downloaded successfully', 'success');
-                    } catch (error) {
-                      console.error('Failed to download certificate:', error);
-                      showToast('Failed to download certificate', 'error');
-                    }
-                  }
-                }}
-              >
-                <Award size={16} className="mr-2" />
-                Download Test Certificate
-              </Button>
-            </div>
-          ) : certificate ? (
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Issued On</p>
-                <p className="font-medium text-gray-900">
-                  {safeFormatDate(certificate.issuedOn, 'MMMM d, yyyy')}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Verification ID: {certificate.verificationId}
-                </p>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => navigate(`/verify/${certificate.verificationId}`)}
-              >
-                View Certificate
-                <ArrowRight size={16} className="ml-2" />
-              </Button>
+                  }}
+                >
+                  <Award size={16} className="mr-2" />
+                  Download Certificate
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-gray-500">Test Certificate</p>
+                <p className="text-sm text-gray-500">Certificate Status</p>
                 <p className="font-medium text-gray-900">
-                  Download template with random names
+                  {application?.status === 'submitted' || application?.status === 'under_review'
+                    ? 'Your application is under review'
+                    : application
+                    ? 'Your application is pending verification'
+                    : 'No application submitted yet'}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {application?.status === 'submitted'
-                    ? 'Your application is under review. This is a test certificate with random names.'
+                  {application?.status === 'submitted' || application?.status === 'under_review'
+                    ? 'Once verified by admin, your certificate will be available here.'
                     : application
-                    ? 'Your application is not yet verified. This is a test certificate with random names.'
-                    : 'No application yet. This is a test certificate with random names for preview.'}
+                    ? 'Complete and submit your application to proceed with verification.'
+                    : 'Start your application to begin the registration process.'}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={async () => {
-                  // Create a minimal application object for testing if none exists
-                  const testApplication = application || {
-                    id: 'test-app',
-                    userId: user?.id || 'test-user',
-                    status: 'draft' as const,
-                    progress: 0,
-                    documents: [],
-                    lastUpdated: new Date().toISOString(),
-                  };
-                  try {
-                    await downloadCertificate(testApplication);
-                    showToast('Test certificate downloaded successfully', 'success');
-                  } catch (error) {
-                    console.error('Failed to download certificate:', error);
-                    showToast('Failed to download certificate', 'error');
-                  }
-                }}
-              >
-                <Award size={16} className="mr-2" />
-                Download Test Certificate
-              </Button>
             </div>
           )}
         </Card>

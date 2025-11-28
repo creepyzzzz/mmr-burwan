@@ -61,7 +61,7 @@ export const applicationService = {
       partnerCurrentAddress?: Address;
       address?: Address;
       currentAddress?: Address;
-      declarations?: Record<string, boolean>;
+      declarations?: Record<string, boolean | string>; // Allow both boolean and string values
     }
   ): Promise<Application> {
     // Get existing application
@@ -72,6 +72,12 @@ export const applicationService = {
 
     // Calculate progress
     let progress = 0;
+    
+    // Merge declarations to preserve existing fields like marriageDate
+    const mergedDeclarations = updates.declarations 
+      ? { ...(application.declarations || {}), ...updates.declarations }
+      : application.declarations;
+    
     const updatedData: any = {
       user_details: updates.userDetails || application.userDetails,
       partner_form: updates.partnerForm || application.partnerForm,
@@ -81,7 +87,7 @@ export const applicationService = {
       partner_current_address: updates.partnerCurrentAddress || application.partnerCurrentAddress,
       address: updates.address || application.address,
       current_address: updates.currentAddress || application.currentAddress,
-      declarations: updates.declarations || application.declarations,
+      declarations: mergedDeclarations,
     };
 
     if (updatedData.user_details) progress += 20;
@@ -183,6 +189,8 @@ export const applicationService = {
       verified: data.verified || false,
       verifiedAt: data.verified_at,
       verifiedBy: data.verified_by,
+      certificateNumber: data.certificate_number,
+      registrationDate: data.registration_date,
       submittedAt: data.submitted_at,
       lastUpdated: data.last_updated || data.updated_at,
     };

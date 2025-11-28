@@ -20,14 +20,15 @@ import {
   Award,
   ArrowRight,
   User,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from 'lucide-react';
 import { safeFormatDate, safeFormatDateObject } from '../../utils/dateUtils';
 import { downloadCertificate } from '../../utils/certificateGenerator';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useNotification();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
@@ -93,13 +94,34 @@ const DashboardPage: React.FC = () => {
 
   const currentStep = application ? Math.floor((application.progress / 100) * applicationSteps.length) : 0;
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      navigate('/');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl font-bold text-gray-900 mb-2">
-          Welcome back, {profile?.firstName || user?.name}!
-        </h1>
-        <p className="text-gray-600">Here's your registration progress</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="font-serif text-4xl font-bold text-gray-900 mb-2">
+            Welcome back, {profile?.firstName || user?.name}!
+          </h1>
+          <p className="text-gray-600">Here's your registration progress</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+        >
+          <LogOut size={18} />
+          <span>Logout</span>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

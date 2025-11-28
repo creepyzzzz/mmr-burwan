@@ -13,11 +13,11 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import PhoneInput from '../../components/ui/PhoneInput';
-import { User, Mail, Phone, LogOut, Download, Key, ArrowLeft, Calendar, Hash, MapPin, Heart } from 'lucide-react';
+import { User, Mail, Phone, Download, Key, ArrowLeft, Calendar, Hash, MapPin, Heart } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout, updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const { showToast } = useNotification();
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -272,17 +272,6 @@ const SettingsPage: React.FC = () => {
     showToast('Password change feature will be available soon', 'info');
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Navigate anyway to ensure user is redirected
-      navigate('/');
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <div className="mb-8">
@@ -474,14 +463,6 @@ const SettingsPage: React.FC = () => {
               >
                 <Download size={18} className="mr-2" />
                 Download My Data
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-rose-600 hover:text-rose-700"
-                onClick={handleLogout}
-              >
-                <LogOut size={18} className="mr-2" />
-                Sign Out
               </Button>
             </div>
           </Card>

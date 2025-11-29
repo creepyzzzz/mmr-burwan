@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, PlayCircle, Phone, FileText, Users, UserMinus, Search } from 'lucide-react';
 import ActionCard from './ActionCard';
+import VerifyDocumentModal from './VerifyDocumentModal';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   
   return (
     <section className="relative min-h-screen flex items-center pt-28 pb-12 lg:pt-32 px-6 overflow-hidden bg-rose-50/30">
@@ -140,13 +142,19 @@ const Hero: React.FC = () => {
                    active={true}
                    color="indigo"
                    className="min-h-[140px]"
-                   onClick={() => navigate('/verify')}
+                   onClick={() => setIsVerifyModalOpen(true)}
                 />
              </div>
           </div>
         </div>
 
       </div>
+
+      {/* Verify Document Modal */}
+      <VerifyDocumentModal 
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+      />
     </section>
   );
 };

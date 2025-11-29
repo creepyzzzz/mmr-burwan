@@ -1,22 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { certificateService } from '../../services/certificates';
-import { Certificate } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Badge from '../../components/ui/Badge';
-import { CheckCircle, XCircle, Download, Search } from 'lucide-react';
+import { CheckCircle, XCircle, Search, MapPin, Calendar, Users } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
+
+interface CertificateVerificationData {
+  certificateNumber: string;
+  registrationDate: string;
+  userDetails: any;
+  partnerForm: any;
+  userAddress: any;
+  partnerAddress: any;
+  declarations: any;
+}
 
 const VerifyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [verificationId, setVerificationId] = useState(id || '');
-  const [certificate, setCertificate] = useState<Certificate | null>(null);
+  const [certificateNumber, setCertificateNumber] = useState(id || '');
+  const [certificateData, setCertificateData] = useState<CertificateVerificationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
   const [hasSearched, setHasSearched] = useState(!!id);
+  const [error, setError] = useState('');
+
+  const formatAddress = (address: any) => {
+    if (!address) return 'N/A';
+    const parts = [];
+    if (address.villageStreet) parts.push(address.villageStreet);
+    if (address.postOffice) parts.push(`P.O. ${address.postOffice}`);
+    if (address.policeStation) parts.push(`P.S. ${address.policeStation}`);
+    if (address.district) parts.push(`Dist. ${address.district}`);
+    if (address.state) parts.push(address.state);
+    if (address.zipCode) parts.push(`PIN- ${address.zipCode}`);
+    return parts.length > 0 ? parts.join(', ') : 'N/A';
+  };
 
   useEffect(() => {
     const loadCertificate = async () => {
@@ -26,15 +47,26 @@ const VerifyPage: React.FC = () => {
       }
 
       setIsLoading(true);
+      setError('');
+      
       try {
-        const cert = await certificateService.getCertificateByVerificationId(id);
-        setCertificate(cert);
-        setIsValid(!!cert && cert.verified);
+        const data = await certificateService.getCertificateByCertificateNumber(id);
+        
+        if (data) {
+          setCertificateData(data);
+          setIsValid(true);
+        } else {
+          setIsValid(false);
+          setError('Certificate not found. Please verify the certificate number and try again.');
+        }
+        
         setHasSearched(true);
-      } catch (error) {
-        console.error('Failed to load certificate:', error);
+      } catch (err: any) {
+        console.error('Failed to verify certificate:', err);
+        setError(err.message || 'Failed to verify certificate. Please try again.');
         setIsValid(false);
         setHasSearched(true);
+        setCertificateData(null);
       } finally {
         setIsLoading(false);
       }
@@ -44,22 +76,52 @@ const VerifyPage: React.FC = () => {
   }, [id]);
 
   const handleVerify = async () => {
-    if (!verificationId.trim()) return;
+    if (!certificateNumber.trim()) {
+      setError('Please enter a certificate number');
+      return;
+    }
+
+    // Validate certificate number format
+    if (!certificateNumber.trim().startsWith('WB-MSD-BRW-')) {
+      setError('Please enter a valid certificate number starting with WB-MSD-BRW-');
+      return;
+    }
 
     setIsLoading(true);
+    setError('');
+    setHasSearched(false);
+    
     try {
-      const cert = await certificateService.getCertificateByVerificationId(verificationId.trim());
-      setCertificate(cert);
-      setIsValid(!!cert && cert.verified);
+      const data = await certificateService.getCertificateByCertificateNumber(certificateNumber.trim());
+      
+      if (data) {
+        setCertificateData(data);
+        setIsValid(true);
+        navigate(`/verify/${certificateNumber.trim()}`);
+      } else {
+        setIsValid(false);
+        setError('Certificate not found. Please verify the certificate number and try again.');
+      }
+      
       setHasSearched(true);
-      navigate(`/verify/${verificationId.trim()}`);
-    } catch (error) {
-      console.error('Failed to load certificate:', error);
+    } catch (err: any) {
+      console.error('Failed to verify certificate:', err);
+      setError(err.message || 'Failed to verify certificate. Please try again.');
       setIsValid(false);
       setHasSearched(true);
+      setCertificateData(null);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setCertificateNumber('');
+    setCertificateData(null);
+    setIsValid(false);
+    setHasSearched(false);
+    setError('');
+    navigate('/verify');
   };
 
   if (isLoading) {
@@ -71,111 +133,206 @@ const VerifyPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 pt-24 pb-12">
+    <div className="max-w-3xl mx-auto px-6 pt-24 pb-12">
       <div className="mb-8 text-center">
         <h1 className="font-serif text-4xl font-bold text-gray-900 mb-2">Verify Certificate</h1>
-        <p className="text-gray-600">Enter your verification ID to check certificate validity</p>
+        <p className="text-gray-600">Enter your certificate number to verify and view certificate details</p>
       </div>
 
       {!hasSearched ? (
         <Card className="p-8">
           <div className="space-y-6">
             <Input
-              label="Verification ID"
-              placeholder="Enter verification ID (e.g., MMR-BW-2024-001234)"
-              value={verificationId}
-              onChange={(e) => setVerificationId(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleVerify()}
+              label="Certificate Number"
+              placeholder="Enter certificate number (e.g., WB-MSD-BRW-V-5-C-2025-257-2026-599)"
+              value={certificateNumber}
+              onChange={(e) => {
+                setCertificateNumber(e.target.value);
+                setError('');
+              }}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleVerify()}
               leftIcon={<Search size={20} />}
+              error={error}
+              disabled={isLoading}
             />
+            
+            {error && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200">
+                <p className="text-sm text-rose-600">{error}</p>
+              </div>
+            )}
+
             <Button
               variant="primary"
               onClick={handleVerify}
               isLoading={isLoading}
               className="w-full"
+              size="lg"
             >
-              <Search size={18} className="mr-2" />
-              Verify Certificate
+              {!isLoading && <Search size={18} className="mr-2" />}
+              {isLoading ? 'Verifying...' : 'Verify Certificate'}
             </Button>
           </div>
         </Card>
       ) : (
-        <Card className="p-8 text-center">
-          {isValid && certificate ? (
-          <>
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={40} className="text-green-600" />
-            </div>
-            <h1 className="font-serif text-3xl font-bold text-gray-900 mb-2">
-              Certificate Verified
-            </h1>
-            <p className="text-gray-600 mb-8">
-              This certificate is valid and has been issued by the MMR Burwan office.
-            </p>
+        <div className="space-y-6">
+          {isValid && certificateData ? (
+            <Card className="p-8">
+              {/* Success Header */}
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4 animate-fade-in">
+                  <CheckCircle size={40} className="text-green-600" />
+                </div>
+                <h2 className="font-serif text-2xl font-bold text-gray-900 mb-2">
+                  Certificate Verified
+                </h2>
+                <p className="text-sm text-gray-600 mb-2">
+                  This certificate is valid and has been issued by the MMR Burwan office.
+                </p>
+                <p className="text-xs font-mono text-gray-500">
+                  {certificateData.certificateNumber}
+                </p>
+              </div>
 
-            <div className="bg-gray-50 rounded-xl p-6 mb-6 text-left">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Certificate Name</p>
-                  <p className="font-semibold text-gray-900">{certificate.name}</p>
+              {/* Certificate Details */}
+              <div className="bg-gradient-to-br from-gray-50 to-rose-50/30 rounded-2xl p-6 space-y-6 border border-gray-200">
+                {/* Groom Details */}
+                <div className="bg-white rounded-xl p-5 border border-gray-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users size={18} className="text-indigo-600" />
+                    <h4 className="font-serif font-semibold text-lg text-gray-900">Groom Details</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">Name</p>
+                      <p className="font-semibold text-gray-900">
+                        {certificateData.userDetails?.firstName} {certificateData.userDetails?.lastName}
+                      </p>
+                      {certificateData.userDetails?.fatherName && (
+                        <p className="text-sm text-gray-600">Son of {certificateData.userDetails.fatherName}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">Address</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {formatAddress(certificateData.userAddress)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Issued On</p>
-                  <p className="font-semibold text-gray-900">
-                    {safeFormatDateObject(new Date(certificate.issuedOn), 'MMMM d, yyyy')}
-                  </p>
+
+                {/* Bride Details */}
+                <div className="bg-white rounded-xl p-5 border border-gray-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users size={18} className="text-rose-600" />
+                    <h4 className="font-serif font-semibold text-lg text-gray-900">Bride Details</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">Name</p>
+                      <p className="font-semibold text-gray-900">
+                        {certificateData.partnerForm?.firstName} {certificateData.partnerForm?.lastName}
+                      </p>
+                      {certificateData.partnerForm?.fatherName && (
+                        <p className="text-sm text-gray-600">Daughter of {certificateData.partnerForm.fatherName}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">Address</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {formatAddress(certificateData.partnerAddress)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Verification ID</p>
-                  <p className="font-semibold text-gray-900 font-mono">
-                    {certificate.verificationId}
-                  </p>
+
+                {/* Marriage & Registration Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar size={16} className="text-gold-600" />
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Marriage Date</p>
+                    </div>
+                    <p className="font-semibold text-gray-900">
+                      {certificateData.declarations?.marriageDate 
+                        ? safeFormatDateObject(new Date(certificateData.declarations.marriageDate), 'MMMM d, yyyy')
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar size={16} className="text-gold-600" />
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Registration Date</p>
+                    </div>
+                    <p className="font-semibold text-gray-900">
+                      {certificateData.registrationDate 
+                        ? safeFormatDateObject(new Date(certificateData.registrationDate), 'MMMM d, yyyy')
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Registration Office Details */}
+                <div className="bg-white rounded-xl p-5 border border-gray-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin size={18} className="text-indigo-600" />
+                    <h4 className="font-serif font-semibold text-lg text-gray-900">Registration Office</h4>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className="font-semibold text-gray-900">
+                      Office of the Muhammadan Marriage Registrar & Qaazi
+                    </p>
+                    <p className="text-gray-700">
+                      Vill. & P.O. Gramshalika, P.S. Burwan, Dist. Murshidabad, PIN- 742132
+                    </p>
+                    <p className="text-xs text-gray-500 italic mt-2">
+                      Under The Bengal Muhammadan Marriages and Divorces Registration Act- 1876.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex gap-3 justify-center">
-              <Button
-                variant="primary"
-                onClick={async () => {
-                  try {
-                    const url = await certificateService.getSignedUrl(certificate.id);
-                    window.open(url, '_blank');
-                  } catch (error) {
-                    console.error('Failed to download:', error);
-                  }
-                }}
-              >
-                <Download size={18} className="mr-2" />
-                Download Certificate
-              </Button>
-            </div>
-          </>
+              {/* Action Button */}
+              <div className="mt-6">
+                <Button
+                  variant="primary"
+                  onClick={handleReset}
+                  className="w-full"
+                >
+                  Verify Another Certificate
+                </Button>
+              </div>
+            </Card>
           ) : (
-            <>
-              <div className="w-20 h-20 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-6">
+            <Card className="p-8 text-center">
+              <div className="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-6">
                 <XCircle size={40} className="text-rose-600" />
               </div>
               <h2 className="font-serif text-3xl font-bold text-gray-900 mb-2">
                 Certificate Not Found
               </h2>
               <p className="text-gray-600 mb-8">
-                The certificate with verification ID "{verificationId || id}" could not be found or is invalid.
+                The certificate with number "{certificateNumber || id}" could not be found or is invalid.
               </p>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setHasSearched(false);
-                  setVerificationId('');
-                  setCertificate(null);
-                  navigate('/verify');
-                }}
-              >
-                Try Another ID
-              </Button>
-            </>
+
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 mb-6">
+                  <p className="text-sm text-rose-600">{error}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-center">
+                <Button
+                  variant="primary"
+                  onClick={handleReset}
+                  className="flex-1"
+                >
+                  Try Another Number
+                </Button>
+              </div>
+            </Card>
           )}
-        </Card>
+        </div>
       )}
 
       <div className="mt-6 text-center">
@@ -188,4 +345,3 @@ const VerifyPage: React.FC = () => {
 };
 
 export default VerifyPage;
-

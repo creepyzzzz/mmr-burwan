@@ -128,6 +128,7 @@ interface CertificatePDFProps {
     partnerFatherName: string;
   };
   jointPhotoDataUrl?: string | null;
+  qrCodeImage?: string | null;
 }
 
 // Exact colors from the original
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     border: `1.5 solid ${GOLD}`,
   },
   detailBoxHeader: {
-    padding: '3 8',
+    padding: '2 8',
   },
   detailBoxTitle: {
     fontFamily: 'Times',
@@ -289,41 +290,41 @@ const styles = StyleSheet.create({
     textDecoration: 'underline',
   },
   detailBoxBody: {
-    padding: '4 8',
+    padding: '2 8',
   },
   fieldRow: {
     flexDirection: 'row',
-    marginBottom: 0.5,
+    marginBottom: 0.2,
   },
   fieldLabel: {
     fontFamily: 'Times',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
     color: BLACK,
     width: 55,
   },
   fieldValue: {
     fontFamily: 'Times',
-    fontSize: 10,
+    fontSize: 12,
     color: BLACK,
     flex: 1,
   },
   addressBlock: {
-    marginTop: 1,
+    marginTop: 0.5,
   },
   addressTitle: {
     fontFamily: 'Times',
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: 'bold',
     color: BLACK,
     textDecoration: 'underline',
-    marginBottom: 0.3,
+    marginBottom: 0.2,
   },
   addressValue: {
     fontFamily: 'Times',
-    fontSize: 8.5,
+    fontSize: 12,
     color: BLACK,
-    lineHeight: 1.1,
+    lineHeight: 1.0,
   },
   
   // ===== SECTION BOXES =====
@@ -471,7 +472,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, certificateData, jointPhotoDataUrl }) => {
+export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, certificateData, jointPhotoDataUrl, qrCodeImage }) => {
   const userDetails = application.userDetails || {};
   const partnerDetails = (application as any).partnerDetails || (application as any).partnerForm || {};
   const userAddress = application.userAddress || (application as any).address || {};
@@ -715,7 +716,15 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
               ) : null}
             </View>
             <View style={styles.qrSection}>
-              <View style={styles.qrBox} />
+              {qrCodeImage ? (
+                <Image 
+                  src={qrCodeImage} 
+                  style={{ width: 68, height: 68 }}
+                  cache={false}
+                />
+              ) : (
+                <View style={styles.qrBox} />
+              )}
             </View>
           </View>
 

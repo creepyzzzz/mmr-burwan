@@ -334,7 +334,10 @@ const DashboardPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/appointments')}
+                  onClick={() => {
+                    // Navigate to appointments page - the page will detect existing appointment and show reschedule option
+                    navigate('/appointments');
+                  }}
                 >
                   Reschedule
                 </Button>

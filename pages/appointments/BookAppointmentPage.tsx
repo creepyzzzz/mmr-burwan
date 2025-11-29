@@ -18,6 +18,8 @@ const BookAppointmentPage: React.FC = () => {
   const [slot, setSlot] = useState<AppointmentSlot | null>(null);
   const [isBooking, setIsBooking] = useState(false);
   const [appointment, setAppointment] = useState<any>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -26,32 +28,52 @@ const BookAppointmentPage: React.FC = () => {
     }
 
     const slotId = searchParams.get('slotId');
+    const rescheduleId = searchParams.get('reschedule');
+    
     if (!slotId) {
       navigate('/appointments');
       return;
     }
 
-    // In a real app, fetch slot details
-    // For now, we'll create a mock slot
-    setSlot({
-      id: slotId,
-      date: new Date().toISOString().split('T')[0],
-      time: '09:00',
-      capacity: 5,
-      booked: 2,
-    });
-  }, [user, navigate, searchParams]);
+    setIsRescheduling(!!rescheduleId);
+    setAppointmentId(rescheduleId);
+
+    // Fetch slot details from available slots
+    const fetchSlot = async () => {
+      try {
+        const slots = await appointmentService.getAvailableSlots();
+        const foundSlot = slots.find(s => s.id === slotId);
+        if (foundSlot) {
+          setSlot(foundSlot);
+        } else {
+          showToast('Slot not found or no longer available', 'error');
+          navigate('/appointments');
+        }
+      } catch (error: any) {
+        showToast(error.message || 'Failed to load slot details', 'error');
+        navigate('/appointments');
+      }
+    };
+
+    fetchSlot();
+  }, [user, navigate, searchParams, showToast]);
 
   const handleBook = async () => {
     if (!slot || !user) return;
 
     setIsBooking(true);
     try {
-      const booked = await appointmentService.bookAppointment(user.id, slot.id);
+      let booked;
+      if (isRescheduling && appointmentId) {
+        booked = await appointmentService.rescheduleAppointment(appointmentId, slot.id);
+        showToast('Appointment rescheduled successfully!', 'success');
+      } else {
+        booked = await appointmentService.bookAppointment(user.id, slot.id);
+        showToast('Appointment booked successfully!', 'success');
+      }
       setAppointment(booked);
-      showToast('Appointment booked successfully!', 'success');
     } catch (error: any) {
-      showToast(error.message || 'Failed to book appointment', 'error');
+      showToast(error.message || (isRescheduling ? 'Failed to reschedule appointment' : 'Failed to book appointment'), 'error');
     } finally {
       setIsBooking(false);
     }
@@ -72,9 +94,13 @@ const BookAppointmentPage: React.FC = () => {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={32} className="text-green-600" />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-gray-900 mb-2">Appointment Confirmed!</h1>
+          <h1 className="font-serif text-3xl font-bold text-gray-900 mb-2">
+            {isRescheduling ? 'Appointment Rescheduled!' : 'Appointment Confirmed!'}
+          </h1>
           <p className="text-gray-600 mb-8">
-            Your appointment has been successfully booked.
+            {isRescheduling 
+              ? 'Your appointment has been successfully rescheduled.'
+              : 'Your appointment has been successfully booked.'}
           </p>
 
           <div className="bg-gray-50 rounded-xl p-6 mb-6">
@@ -115,8 +141,12 @@ const BookAppointmentPage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <div className="mb-8">
-        <h1 className="font-serif text-4xl font-bold text-gray-900 mb-2">Confirm Appointment</h1>
-        <p className="text-gray-600">Review your appointment details</p>
+        <h1 className="font-serif text-4xl font-bold text-gray-900 mb-2">
+          {isRescheduling ? 'Reschedule Appointment' : 'Confirm Appointment'}
+        </h1>
+        <p className="text-gray-600">
+          {isRescheduling ? 'Review your new appointment details' : 'Review your appointment details'}
+        </p>
       </div>
 
       <Card className="p-8">
@@ -153,7 +183,7 @@ const BookAppointmentPage: React.FC = () => {
             isLoading={isBooking}
             className="flex-1"
           >
-            Confirm Booking
+            {isRescheduling ? 'Confirm Reschedule' : 'Confirm Booking'}
             <ArrowRight size={18} className="ml-2" />
           </Button>
         </div>

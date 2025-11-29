@@ -37,7 +37,12 @@ const generateRomanNumerals = (): string[] => {
 
 const ROMAN_NUMERALS = generateRomanNumerals();
 
-// Parse certificate number: "WB-MSD-BRW-I-1-C-2024-16-2025-21" or "WB-MSD-BRW-I-1-C--16--21" (with empty volumeYear/serialYear)
+// Parse certificate number: 
+// "WB-MSD-BRW-I-1-C-2024-16-2025-21" (with both optional fields)
+// "WB-MSD-BRW-I-1-C-2024-16-21" (with only volumeYear)
+// "WB-MSD-BRW-I-1-C-16-2025-21" (with only serialYear)
+// "WB-MSD-BRW-I-1-C-16-21" (without optional fields)
+// Also handles old format with consecutive dashes for backward compatibility
 const parseCertificateNumber = (certNumber: string | undefined) => {
   if (!certNumber) {
     return {
@@ -51,17 +56,88 @@ const parseCertificateNumber = (certNumber: string | undefined) => {
     };
   }
 
-  // Format: WB-MSD-BRW-{book}-{volumeNumber}-{volumeLetter}-{volumeYear}-{serialNumber}-{serialYear}-{pageNumber}
-  // volumeYear and serialYear can be empty strings
+  // Format: WB-MSD-BRW-{book}-{volumeNumber}-{volumeLetter}-{volumeYear?}-{serialNumber}-{serialYear?}-{pageNumber}
+  // volumeYear and serialYear are optional
   const parts = certNumber.split('-');
-  if (parts.length >= 10 && parts[0] === 'WB' && parts[1] === 'MSD' && parts[2] === 'BRW') {
+  
+  // Must start with WB-MSD-BRW
+  if (parts.length < 8 || parts[0] !== 'WB' || parts[1] !== 'MSD' || parts[2] !== 'BRW') {
+    return {
+      bookNumber: 'I',
+      volumeNumber: '',
+      volumeLetter: 'C',
+      volumeYear: '',
+      serialNumber: '',
+      serialYear: '',
+      pageNumber: '',
+    };
+  }
+
+  // Base structure: WB-MSD-BRW-book-volNum-volLet-[volYear?]-serialNum-[serialYear?]-pageNum
+  // 8 parts = no optional fields: WB-MSD-BRW-book-volNum-volLet-serialNum-pageNum
+  // 9 parts = one optional field
+  // 10 parts = both optional fields
+  if (parts.length === 8) {
+    // No optional fields: WB-MSD-BRW-book-volNum-volLet-serialNum-pageNum
     return {
       bookNumber: parts[3] || 'I',
       volumeNumber: parts[4] || '',
       volumeLetter: parts[5] || 'C',
-      volumeYear: parts[6] || '', // Optional, can be empty
+      volumeYear: '',
+      serialNumber: parts[6] || '',
+      serialYear: '',
+      pageNumber: parts[7] || '',
+    };
+  } else if (parts.length === 9) {
+    // One optional field - need to determine which one
+    // Check if part[6] looks like a year (4 digits) or serial number
+    const part6 = parts[6] || '';
+    const isYear = /^\d{4}$/.test(part6);
+    
+    if (isYear) {
+      // volumeYear present: WB-MSD-BRW-book-volNum-volLet-volYear-serialNum-pageNum
+      return {
+        bookNumber: parts[3] || 'I',
+        volumeNumber: parts[4] || '',
+        volumeLetter: parts[5] || 'C',
+        volumeYear: part6,
+        serialNumber: parts[7] || '',
+        serialYear: '',
+        pageNumber: parts[8] || '',
+      };
+    } else {
+      // serialYear present: WB-MSD-BRW-book-volNum-volLet-serialNum-serialYear-pageNum
+      return {
+        bookNumber: parts[3] || 'I',
+        volumeNumber: parts[4] || '',
+        volumeLetter: parts[5] || 'C',
+        volumeYear: '',
+        serialNumber: part6,
+        serialYear: parts[7] || '',
+        pageNumber: parts[8] || '',
+      };
+    }
+  } else if (parts.length === 10) {
+    // Both optional fields: WB-MSD-BRW-book-volNum-volLet-volYear-serialNum-serialYear-pageNum
+    return {
+      bookNumber: parts[3] || 'I',
+      volumeNumber: parts[4] || '',
+      volumeLetter: parts[5] || 'C',
+      volumeYear: parts[6] || '',
       serialNumber: parts[7] || '',
-      serialYear: parts[8] || '', // Optional, can be empty
+      serialYear: parts[8] || '',
+      pageNumber: parts[9] || '',
+    };
+  } else if (parts.length >= 10) {
+    // Old format with consecutive dashes (backward compatibility)
+    // WB-MSD-BRW-book-volNum-volLet--serialNum--pageNum or similar
+    return {
+      bookNumber: parts[3] || 'I',
+      volumeNumber: parts[4] || '',
+      volumeLetter: parts[5] || 'C',
+      volumeYear: parts[6] || '',
+      serialNumber: parts[7] || '',
+      serialYear: parts[8] || '',
       pageNumber: parts[9] || '',
     };
   }
@@ -71,9 +147,9 @@ const parseCertificateNumber = (certNumber: string | undefined) => {
     bookNumber: 'I',
     volumeNumber: '',
     volumeLetter: 'C',
-    volumeYear: '', // Optional
+    volumeYear: '',
     serialNumber: '',
-    serialYear: '', // Optional
+    serialYear: '',
     pageNumber: '',
   };
 };
@@ -184,6 +260,7 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
     const { bookNumber, volumeNumber, volumeLetter, volumeYear, serialNumber, serialYear, pageNumber } = formValues;
     if (bookNumber && volumeNumber && volumeLetter && serialNumber && pageNumber) {
       // Build certificate number, handling optional volumeYear and serialYear
+      // Filter out empty strings to prevent consecutive dashes
       const parts = [
         'WB',
         'MSD',
@@ -191,9 +268,9 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
         bookNumber,
         volumeNumber,
         volumeLetter,
-        volumeYear || '', // Optional
+        ...(volumeYear ? [volumeYear] : []), // Only include if not empty
         serialNumber,
-        serialYear || '', // Optional
+        ...(serialYear ? [serialYear] : []), // Only include if not empty
         pageNumber
       ];
       return parts.join('-');
@@ -227,6 +304,7 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
     setIsSubmitting(true);
     try {
       // Construct the full certificate number, handling optional volumeYear and serialYear
+      // Filter out empty strings to prevent consecutive dashes
       const parts = [
         'WB',
         'MSD',
@@ -234,9 +312,9 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
         data.bookNumber,
         data.volumeNumber,
         data.volumeLetter,
-        data.volumeYear || '', // Optional
+        ...(data.volumeYear ? [data.volumeYear] : []), // Only include if not empty
         data.serialNumber,
-        data.serialYear || '', // Optional
+        ...(data.serialYear ? [data.serialYear] : []), // Only include if not empty
         data.pageNumber
       ];
       const fullCertificateNumber = parts.join('-');

@@ -62,6 +62,38 @@ export const certificateService = {
     };
   },
 
+  async getCertificateByCertificateNumber(certificateNumber: string): Promise<any | null> {
+    // Find the application by certificate_number with all details
+    const { data: application, error: appError } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('certificate_number', certificateNumber)
+      .eq('verified', true)
+      .maybeSingle();
+
+    if (appError) {
+      if (appError.code === 'PGRST116') {
+        return null;
+      }
+      throw new Error(appError.message);
+    }
+
+    if (!application || !application.verified) {
+      return null;
+    }
+
+    // Return full application data
+    return {
+      certificateNumber: application.certificate_number,
+      registrationDate: application.registration_date,
+      userDetails: application.user_details,
+      partnerForm: application.partner_form,
+      userAddress: application.user_address,
+      partnerAddress: application.partner_address,
+      declarations: application.declarations,
+    };
+  },
+
   async issueCertificate(
     userId: string,
     applicationId: string,

@@ -231,6 +231,115 @@ export const appointmentService = {
     }
   },
 
+  async rescheduleAppointment(appointmentId: string, newSlotId: string): Promise<Appointment> {
+    // Get the existing appointment
+    const { data: oldAppointment, error: fetchError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', appointmentId)
+      .single();
+
+    if (fetchError || !oldAppointment) {
+      throw new Error('Appointment not found');
+    }
+
+    // Check if appointment is in a reschedulable state
+    if (oldAppointment.status === 'cancelled' || oldAppointment.status === 'completed') {
+      throw new Error('Cannot reschedule a cancelled or completed appointment');
+    }
+
+    // Get the new slot details
+    const { data: newSlot, error: slotError } = await supabase
+      .from('appointment_slots')
+      .select('*')
+      .eq('id', newSlotId)
+      .single();
+
+    if (slotError || !newSlot) {
+      throw new Error('New slot not found');
+    }
+
+    // Check if new slot has capacity
+    if (newSlot.booked >= newSlot.capacity) {
+      throw new Error('New slot is fully booked');
+    }
+
+    // Prevent rescheduling to the same slot
+    if (oldAppointment.slot_id === newSlotId) {
+      throw new Error('You are already booked for this slot');
+    }
+
+    // Start transaction-like operations
+    try {
+      // 1. Increment booked count for new slot
+      const { error: incrementError } = await supabase
+        .from('appointment_slots')
+        .update({ booked: newSlot.booked + 1 })
+        .eq('id', newSlotId);
+
+      if (incrementError) {
+        throw new Error(`Failed to book new slot: ${incrementError.message}`);
+      }
+
+      // 2. Update appointment with new slot details
+      const qrCodeData = JSON.stringify({
+        appointmentId: `apt-${Date.now()}`,
+        userId: oldAppointment.user_id,
+        date: newSlot.date,
+        time: newSlot.time,
+      });
+
+      const { data: updatedAppointment, error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          slot_id: newSlotId,
+          date: newSlot.date,
+          time: newSlot.time,
+          qr_code_data: qrCodeData,
+          status: 'confirmed', // Ensure status is confirmed after reschedule
+        })
+        .eq('id', appointmentId)
+        .select()
+        .single();
+
+      if (updateError) {
+        // Rollback: decrement new slot
+        await supabase
+          .from('appointment_slots')
+          .update({ booked: newSlot.booked })
+          .eq('id', newSlotId);
+        throw new Error(`Failed to update appointment: ${updateError.message}`);
+      }
+
+      // 3. Decrement booked count for old slot
+      const { data: oldSlot } = await supabase
+        .from('appointment_slots')
+        .select('booked')
+        .eq('id', oldAppointment.slot_id)
+        .single();
+
+      if (oldSlot) {
+        await supabase
+          .from('appointment_slots')
+          .update({ booked: Math.max(0, oldSlot.booked - 1) })
+          .eq('id', oldAppointment.slot_id);
+      }
+
+      return {
+        id: updatedAppointment.id,
+        userId: updatedAppointment.user_id,
+        slotId: updatedAppointment.slot_id,
+        date: updatedAppointment.date,
+        time: updatedAppointment.time,
+        status: updatedAppointment.status,
+        qrCodeData: updatedAppointment.qr_code_data,
+        createdAt: updatedAppointment.created_at,
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
   async getAppointmentWithUserDetails(appointmentId: string): Promise<{
     appointment: Appointment;
     user: {

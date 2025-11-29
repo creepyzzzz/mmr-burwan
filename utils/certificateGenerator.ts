@@ -3,6 +3,7 @@ import { pdf } from '@react-pdf/renderer';
 import React from 'react';
 import { CertificatePDF } from '../components/certificate/CertificatePDF';
 import { documentService } from '../services/documents';
+import QRCodeLib from 'qrcode';
 
 // Generate random names for testing
 const generateRandomName = () => {
@@ -61,7 +62,12 @@ const formatAddress = (address: any): string => {
   return parts.length > 0 ? parts.join(', ') : 'N/A';
 };
 
-// Parse certificate number: "WB-MSD-BRW-I-1-C-2024-16-2025-21" or "WB-MSD-BRW-I-1-C--16--21" (with empty volumeYear/serialYear)
+// Parse certificate number: 
+// "WB-MSD-BRW-I-1-C-2024-16-2025-21" (with both optional fields)
+// "WB-MSD-BRW-I-1-C-2024-16-21" (with only volumeYear)
+// "WB-MSD-BRW-I-1-C-16-2025-21" (with only serialYear)
+// "WB-MSD-BRW-I-1-C-16-21" (without optional fields)
+// Also handles old format with consecutive dashes for backward compatibility
 const parseCertificateNumber = (certNumber: string | undefined) => {
   if (!certNumber) {
     return {
@@ -75,17 +81,87 @@ const parseCertificateNumber = (certNumber: string | undefined) => {
     };
   }
 
-  // Format: WB-MSD-BRW-{book}-{volumeNumber}-{volumeLetter}-{volumeYear}-{serialNumber}-{serialYear}-{pageNumber}
-  // volumeYear and serialYear can be empty strings
+  // Format: WB-MSD-BRW-{book}-{volumeNumber}-{volumeLetter}-{volumeYear?}-{serialNumber}-{serialYear?}-{pageNumber}
+  // volumeYear and serialYear are optional
   const parts = certNumber.split('-');
-  if (parts.length >= 10 && parts[0] === 'WB' && parts[1] === 'MSD' && parts[2] === 'BRW') {
+  
+  // Must start with WB-MSD-BRW
+  if (parts.length < 8 || parts[0] !== 'WB' || parts[1] !== 'MSD' || parts[2] !== 'BRW') {
+    return {
+      book: 'I',
+      volumeNumber: '1',
+      volumeLetter: 'C',
+      volumeYear: '',
+      serialNumber: '1',
+      serialYear: '',
+      pageNumber: '1',
+    };
+  }
+
+  // Base structure: WB-MSD-BRW-book-volNum-volLet-[volYear?]-serialNum-[serialYear?]-pageNum
+  // 8 parts = no optional fields: WB-MSD-BRW-book-volNum-volLet-serialNum-pageNum
+  // 9 parts = one optional field
+  // 10 parts = both optional fields
+  if (parts.length === 8) {
+    // No optional fields: WB-MSD-BRW-book-volNum-volLet-serialNum-pageNum
     return {
       book: parts[3] || 'I',
       volumeNumber: parts[4] || '1',
       volumeLetter: parts[5] || 'C',
-      volumeYear: parts[6] || '', // Optional, can be empty
+      volumeYear: '',
+      serialNumber: parts[6] || '1',
+      serialYear: '',
+      pageNumber: parts[7] || '1',
+    };
+  } else if (parts.length === 9) {
+    // One optional field - need to determine which one
+    // Check if part[6] looks like a year (4 digits) or serial number
+    const part6 = parts[6] || '';
+    const isYear = /^\d{4}$/.test(part6);
+    
+    if (isYear) {
+      // volumeYear present: WB-MSD-BRW-book-volNum-volLet-volYear-serialNum-pageNum
+      return {
+        book: parts[3] || 'I',
+        volumeNumber: parts[4] || '1',
+        volumeLetter: parts[5] || 'C',
+        volumeYear: part6,
+        serialNumber: parts[7] || '1',
+        serialYear: '',
+        pageNumber: parts[8] || '1',
+      };
+    } else {
+      // serialYear present: WB-MSD-BRW-book-volNum-volLet-serialNum-serialYear-pageNum
+      return {
+        book: parts[3] || 'I',
+        volumeNumber: parts[4] || '1',
+        volumeLetter: parts[5] || 'C',
+        volumeYear: '',
+        serialNumber: part6,
+        serialYear: parts[7] || '',
+        pageNumber: parts[8] || '1',
+      };
+    }
+  } else if (parts.length === 10) {
+    // Both optional fields: WB-MSD-BRW-book-volNum-volLet-volYear-serialNum-serialYear-pageNum
+    return {
+      book: parts[3] || 'I',
+      volumeNumber: parts[4] || '1',
+      volumeLetter: parts[5] || 'C',
+      volumeYear: parts[6] || '',
       serialNumber: parts[7] || '1',
-      serialYear: parts[8] || '', // Optional, can be empty
+      serialYear: parts[8] || '',
+      pageNumber: parts[9] || '1',
+    };
+  } else if (parts.length >= 11) {
+    // Old format with consecutive dashes (backward compatibility)
+    return {
+      book: parts[3] || 'I',
+      volumeNumber: parts[4] || '1',
+      volumeLetter: parts[5] || 'C',
+      volumeYear: parts[6] || '',
+      serialNumber: parts[7] || '1',
+      serialYear: parts[8] || '',
       pageNumber: parts[9] || '1',
     };
   }
@@ -95,9 +171,9 @@ const parseCertificateNumber = (certNumber: string | undefined) => {
     book: 'I',
     volumeNumber: '1',
     volumeLetter: 'C',
-    volumeYear: '', // Optional
+    volumeYear: '',
     serialNumber: '1',
-    serialYear: '', // Optional
+    serialYear: '',
     pageNumber: '1',
   };
 };
@@ -208,11 +284,34 @@ export const downloadCertificate = async (application: Application) => {
     }
   }
   
+  // Generate QR code with verification URL
+  const certificateNumber = application.certificateNumber || certificateData.consecutiveNumber;
+  const baseUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : 'http://localhost:3000'; // Fallback for server-side
+  const verificationUrl = `${baseUrl}/verify/${certificateNumber}`;
+  
+  let qrCodeImage: string | null = null;
+  try {
+    qrCodeImage = await QRCodeLib.toDataURL(verificationUrl, {
+      width: 68,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+    // Continue without QR code if it fails
+  }
+  
   // Generate PDF using React PDF with the data URL
   const doc = React.createElement(CertificatePDF, { 
     application, 
     certificateData,
-    jointPhotoDataUrl // Pass the data URL instead of URL
+    jointPhotoDataUrl, // Pass the data URL instead of URL
+    qrCodeImage // Pass QR code image
   });
   const blob = await pdf(doc).toBlob();
   

@@ -18,6 +18,7 @@ const AppointmentsPage: React.FC = () => {
   const [slots, setSlots] = useState<AppointmentSlot[]>([]);
   const [userAppointment, setUserAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -43,9 +44,27 @@ const AppointmentsPage: React.FC = () => {
     loadData();
   }, [user, navigate]);
 
-  const handleBook = (slotId: string) => {
-    navigate(`/appointments/book?slotId=${slotId}`);
+  const handleBook = async (slotId: string) => {
+    if (userAppointment) {
+      // Reschedule existing appointment
+      navigate(`/appointments/book?slotId=${slotId}&reschedule=${userAppointment.id}`);
+    } else {
+      // Book new appointment
+      navigate(`/appointments/book?slotId=${slotId}`);
+    }
   };
+
+  // Reload appointment data when returning from booking page
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        appointmentService.getUserAppointment(user.id).then(setUserAppointment).catch(console.error);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
 
   const groupedSlots = slots.reduce((acc, slot) => {
     if (!acc[slot.date]) {
@@ -86,15 +105,38 @@ const AppointmentsPage: React.FC = () => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 <CheckCircle size={20} className="text-gold-600" />
-                You have an appointment
+                {isRescheduling ? 'Rescheduling your appointment' : 'You have an appointment'}
               </h3>
               <p className="text-gray-700">
                 {safeFormatDate(userAppointment.date, 'MMMM d, yyyy', userAppointment.date)} at {userAppointment.time}
               </p>
+              {isRescheduling && (
+                <p className="text-sm text-gold-700 mt-2">
+                  Select a new time slot below to reschedule
+                </p>
+              )}
             </div>
-            <Button variant="primary" onClick={() => navigate('/pass')}>
-              View Pass
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="primary" onClick={() => navigate('/pass')}>
+                View Pass
+              </Button>
+              {!isRescheduling && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsRescheduling(true)}
+                >
+                  Reschedule
+                </Button>
+              )}
+              {isRescheduling && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsRescheduling(false)}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
       )}
@@ -126,10 +168,10 @@ const AppointmentsPage: React.FC = () => {
                   <button
                     key={slot.id}
                     onClick={() => !isPast && isAvailable && handleBook(slot.id)}
-                    disabled={isPast || !isAvailable || !!userAppointment}
+                    disabled={isPast || !isAvailable || (!!userAppointment && !isRescheduling)}
                     className={`
                       p-4 rounded-xl border-2 transition-all
-                      ${isPast || !isAvailable || userAppointment
+                      ${isPast || !isAvailable || (!!userAppointment && !isRescheduling)
                         ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
                         : 'border-gold-200 hover:border-gold-400 hover:bg-gold-50 cursor-pointer'
                       }

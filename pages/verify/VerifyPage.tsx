@@ -19,6 +19,7 @@ interface CertificateVerificationData {
 
 const VerifyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation('verify');
   const navigate = useNavigate();
   const [certificateNumber, setCertificateNumber] = useState(id || '');
   const [certificateData, setCertificateData] = useState<CertificateVerificationData | null>(null);
@@ -135,16 +136,16 @@ const VerifyPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-16 sm:pt-20 pb-6 sm:pb-10">
       <div className="mb-4 sm:mb-6 text-center">
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Verify Certificate</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Enter certificate number to verify details</p>
+        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{t('title')}</h1>
+        <p className="text-xs sm:text-sm text-gray-600">{t('subtitle')}</p>
       </div>
 
       {!hasSearched ? (
         <Card className="p-4 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
             <Input
-              label="Certificate Number"
-              placeholder="e.g., WB-MSD-BRW-V-5-C-2025-257-2026-599"
+              label={t('certificateNumber')}
+              placeholder={t('certificateNumberPlaceholder')}
               value={certificateNumber}
               onChange={(e) => {
                 setCertificateNumber(e.target.value);
@@ -170,7 +171,7 @@ const VerifyPage: React.FC = () => {
               size="md"
             >
               {!isLoading && <Search size={14} className="mr-1.5 sm:w-4 sm:h-4" />}
-              {isLoading ? 'Verifying...' : 'Verify Certificate'}
+              {isLoading ? t('verifying') : t('verify')}
             </Button>
           </div>
         </Card>

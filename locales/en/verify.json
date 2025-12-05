@@ -1,0 +1,16 @@
+{
+  "title": "Verify Certificate",
+  "subtitle": "Enter certificate number to verify details",
+  "certificateNumber": "Certificate Number",
+  "certificateNumberPlaceholder": "e.g., WB-MSD-BRW-V-5-C-2025-257-2026-599",
+  "verify": "Verify Certificate",
+  "verifying": "Verifying...",
+  "notFound": "Certificate Not Found",
+  "notFoundDesc": "The certificate \"{{number}}\" could not be found or is invalid.",
+  "tryAnother": "Try Another Number",
+  "needHelp": "Need help?",
+  "contactSupport": "Contact Support",
+  "valid": "Valid Certificate",
+  "verified": "Verified",
+  "details": "Certificate Details"
+}

@@ -7,23 +7,27 @@ import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { authService } from '../../services/auth';
+import { useTranslation } from '../../hooks/useTranslation';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+const createLoginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t('auth:validation.emailRequired')),
+  password: z.string().min(6, t('auth:validation.passwordMin')),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>;
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, user, signInWithGoogle } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('auth');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const loginSchema = createLoginSchema(t);
 
   const {
     register,
@@ -53,7 +57,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       const loggedInUser = await login(data.email, data.password);
-      showToast('Welcome back!', 'success');
+      showToast(t('login.welcomeBack'), 'success');
       
       // Redirect based on user role
       if (loggedInUser?.role === 'admin') {
@@ -62,7 +66,7 @@ const LoginPage: React.FC = () => {
         navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
-      showToast(error.message || 'Login failed. Please try again.', 'error');
+      showToast(error.message || t('errors.loginFailed'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +78,7 @@ const LoginPage: React.FC = () => {
       await signInWithGoogle();
       // Note: signInWithGoogle will redirect to Google, so we don't need to handle navigation here
     } catch (error: any) {
-      showToast(error.message || 'Google sign-in failed. Please try again.', 'error');
+      showToast(error.message || t('errors.googleSignInFailed'), 'error');
       setIsGoogleLoading(false);
     }
   };
@@ -82,15 +86,15 @@ const LoginPage: React.FC = () => {
   return (
     <Card className="p-4 sm:p-6 shadow-xl">
       <div className="mb-3 sm:mb-5">
-        <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">Welcome Back</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Sign in to your account to continue</p>
+        <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{t('login.title')}</h1>
+        <p className="text-xs sm:text-sm text-gray-600">{t('login.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
         <Input
-          label="Email Address"
+          label={t('login.emailLabel')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('login.emailPlaceholder')}
           leftIcon={<Mail size={16} className="sm:w-[18px] sm:h-[18px]" />}
           error={errors.email?.message}
           autoComplete="email"
@@ -100,9 +104,9 @@ const LoginPage: React.FC = () => {
 
         <div>
           <Input
-            label="Password"
+            label={t('login.passwordLabel')}
             type="password"
-            placeholder="Enter your password"
+            placeholder={t('login.passwordPlaceholder')}
             leftIcon={<Lock size={16} className="sm:w-[18px] sm:h-[18px]" />}
             error={errors.password?.message}
             showPasswordToggle={true}
@@ -115,7 +119,7 @@ const LoginPage: React.FC = () => {
               to="/auth/forgot-password"
               className="text-[11px] sm:text-xs text-gold-600 hover:text-gold-700 font-medium"
             >
-              Forgot password?
+              {t('login.forgotPassword')}
             </Link>
           </div>
         </div>
@@ -127,7 +131,7 @@ const LoginPage: React.FC = () => {
           isLoading={isLoading}
           className="w-full"
         >
-          Sign In
+          {t('login.signIn')}
           <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
         </Button>
       </form>
@@ -138,7 +142,7 @@ const LoginPage: React.FC = () => {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-[10px] sm:text-xs">
-            <span className="px-2 sm:px-3 bg-white text-gray-500">Or continue with</span>
+            <span className="px-2 sm:px-3 bg-white text-gray-500">{t('login.orContinue')}</span>
           </div>
         </div>
 
@@ -168,15 +172,15 @@ const LoginPage: React.FC = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Sign in with Google
+          {t('login.googleSignIn')}
         </Button>
       </div>
 
       <div className="mt-3 sm:mt-4 text-center">
         <p className="text-[11px] sm:text-xs text-gray-600">
-          Don't have an account?{' '}
+          {t('login.noAccount')}{' '}
           <Link to="/auth/register" className="text-gold-600 hover:text-gold-700 font-medium">
-            Sign up
+            {t('login.registerLink')}
           </Link>
         </p>
       </div>
@@ -186,7 +190,7 @@ const LoginPage: React.FC = () => {
           to="/auth/magic-link"
           className="block text-center text-[11px] sm:text-xs text-gray-600 hover:text-gold-600 font-medium"
         >
-          Sign in with magic link
+          {t('magicLink.title')}
         </Link>
       </div>
     </Card>

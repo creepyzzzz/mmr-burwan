@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { profileService } from '../../services/profile';
 import { applicationService } from '../../services/application';
 import { appointmentService } from '../../services/appointments';
@@ -33,6 +34,7 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('dashboard');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [appointment, setAppointment] = useState<Appointment | null>(null);
@@ -90,11 +92,11 @@ const DashboardPage: React.FC = () => {
   }
 
   const applicationSteps = [
-    { id: 'groom', label: 'Groom Details' },
-    { id: 'bride', label: 'Bride Details' },
-    { id: 'documents', label: 'Documents' },
-    { id: 'confirmation', label: 'Confirmation' },
-    { id: 'review', label: 'Review' },
+    { id: 'groom', label: t('cards.application.steps.groom') },
+    { id: 'bride', label: t('cards.application.steps.bride') },
+    { id: 'documents', label: t('cards.application.steps.documents') },
+    { id: 'confirmation', label: t('cards.application.steps.confirmation') },
+    { id: 'review', label: t('cards.application.steps.review') },
   ];
 
   // Calculate current step based on actual data filled
@@ -174,9 +176,9 @@ const DashboardPage: React.FC = () => {
         <div className="flex items-center justify-between mb-2 sm:mb-0">
           <div className="flex-1 min-w-0">
             <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-              Welcome, {profile?.firstName || user?.name}!
+              {t('title', { name: profile?.firstName || user?.name || '' })}
             </h1>
-            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">Your registration progress</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{t('subtitle')}</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 ml-2">
             {user && (
@@ -199,7 +201,7 @@ const DashboardPage: React.FC = () => {
               className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 !px-2 sm:!px-3"
             >
               <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="hidden sm:inline text-xs sm:text-sm">Logout</span>
+              <span className="hidden sm:inline text-xs sm:text-sm">{t('logout')}</span>
             </Button>
           </div>
         </div>
@@ -214,8 +216,8 @@ const DashboardPage: React.FC = () => {
               <User size={18} className="sm:w-5 sm:h-5 text-gold-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900">Profile</h3>
-              <p className="text-xs sm:text-sm text-gray-500">{profile?.completionPercentage || 0}% complete</p>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900">{t('cards.profile.title')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500">{t('cards.profile.complete', { percentage: profile?.completionPercentage || 0 })}</p>
             </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 mb-3">
@@ -225,7 +227,7 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           <Button variant="ghost" size="sm" className="w-full !text-xs sm:!text-sm" onClick={() => navigate('/settings')}>
-            Update Profile
+            {t('cards.profile.updateProfile')}
           </Button>
         </Card>
 
@@ -236,9 +238,9 @@ const DashboardPage: React.FC = () => {
               <FileText size={18} className="sm:w-5 sm:h-5 text-rose-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900">Application</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900">{t('cards.application.title')}</h3>
               <Badge variant={application?.status === 'submitted' ? 'success' : 'warning'}>
-                {application?.status || 'Not started'}
+                {application?.status ? t(`status.${application.status}`) : t('cards.application.notStarted')}
               </Badge>
             </div>
           </div>
@@ -251,7 +253,7 @@ const DashboardPage: React.FC = () => {
               />
             </div>
           ) : (
-            <p className="text-xs sm:text-sm text-gray-500 mb-3">Start your application</p>
+            <p className="text-xs sm:text-sm text-gray-500 mb-3">{t('cards.application.startApplication')}</p>
           )}
           {application?.status === 'submitted' || application?.status === 'under_review' || application?.status === 'approved' ? (
             <div className="flex flex-col gap-2">
@@ -262,10 +264,10 @@ const DashboardPage: React.FC = () => {
                 onClick={() => navigate('/application/view')}
             >
                 <Eye size={14} className="sm:w-4 sm:h-4 mr-1.5" />
-                View Application
+                {t('cards.application.viewApplication')}
             </Button>
               <p className="text-[10px] sm:text-xs text-gray-500 text-center">
-                Application submitted
+                {t('cards.application.applicationSubmitted')}
                 <CheckCircle size={12} className="inline ml-1 sm:w-3 sm:h-3" />
               </p>
             </div>
@@ -276,7 +278,7 @@ const DashboardPage: React.FC = () => {
               className="w-full !text-xs sm:!text-sm"
               onClick={() => navigate('/application')}
             >
-              {application ? 'Continue' : 'Start Application'}
+              {application ? t('cards.application.continue') : t('cards.application.start')}
               <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
             </Button>
           )}
@@ -290,9 +292,9 @@ const DashboardPage: React.FC = () => {
                 <MessageSquare size={18} className="sm:w-5 sm:h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900">Messages</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900">{t('cards.messages.title')}</h3>
                 <p className="text-xs sm:text-sm text-gray-500">
-                  {unreadMessages > 0 ? `${unreadMessages} unread` : 'No new messages'}
+                  {unreadMessages > 0 ? t('cards.messages.unread', { count: unreadMessages }) : t('cards.messages.noNewMessages')}
                 </p>
               </div>
             </div>
@@ -306,7 +308,7 @@ const DashboardPage: React.FC = () => {
             className="w-full !text-xs sm:!text-sm"
             onClick={() => navigate('/chat')}
           >
-            View Messages
+            {t('cards.messages.viewMessages')}
             <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
           </Button>
         </Card>
@@ -319,18 +321,18 @@ const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm sm:text-base text-gray-900 flex items-center gap-1.5 sm:gap-2">
               <Calendar size={16} className="sm:w-5 sm:h-5 text-gold-600" />
-              Appointment
+              {t('cards.appointment.title')}
             </h3>
             {appointment && (
               <Badge variant={appointment.status === 'confirmed' ? 'success' : 'warning'}>
-                {appointment.status}
+                {t(`status.${appointment.status}`)}
               </Badge>
             )}
           </div>
           {appointment ? (
             <div className="space-y-2 sm:space-y-3">
               <div>
-                <p className="text-[11px] sm:text-xs text-gray-500">Date & Time</p>
+                <p className="text-[11px] sm:text-xs text-gray-500">{t('cards.appointment.dateTime')}</p>
                 <p className="font-medium text-xs sm:text-sm text-gray-900">
                   {safeFormatDate(appointment.date, 'MMM d, yyyy')} at {appointment.time}
                 </p>
@@ -342,7 +344,7 @@ const DashboardPage: React.FC = () => {
                   className="!text-xs sm:!text-sm flex-1"
                   onClick={() => navigate('/pass')}
                 >
-                  View Pass
+                  {t('cards.appointment.viewPass')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -350,20 +352,20 @@ const DashboardPage: React.FC = () => {
                   className="!text-xs sm:!text-sm"
                   onClick={() => navigate('/appointments')}
                 >
-                  Reschedule
+                  {t('cards.appointment.reschedule')}
                 </Button>
               </div>
             </div>
           ) : (
             <div>
-              <p className="text-xs sm:text-sm text-gray-500 mb-3">No appointment scheduled</p>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3">{t('cards.appointment.noAppointment')}</p>
               <Button
                 variant="primary"
                 size="sm"
                 className="!text-xs sm:!text-sm"
                 onClick={() => navigate('/appointments')}
               >
-                Book Appointment
+                {t('cards.appointment.bookAppointment')}
                 <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
               </Button>
             </div>
@@ -375,29 +377,30 @@ const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm sm:text-base text-gray-900 flex items-center gap-1.5 sm:gap-2">
               <Award size={16} className="sm:w-5 sm:h-5 text-gold-600" />
-              Certificate
+              {t('cards.certificate.title')}
             </h3>
-            {application?.verified && <Badge variant="success">Verified</Badge>}
+            {application?.verified && <Badge variant="success">{t('cards.certificate.verified')}</Badge>}
           </div>
           {application?.verified ? (
             <div className="space-y-2 sm:space-y-3">
               <div>
-                <p className="text-[11px] sm:text-xs text-gray-500">Status</p>
+                <p className="text-[11px] sm:text-xs text-gray-500">{t('cards.certificate.status')}</p>
                 <p className="font-medium text-xs sm:text-sm text-gray-900">
-                  Application verified
+                  {t('cards.certificate.applicationVerified')}
                 </p>
                 {application.verifiedAt && (
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
-                    Verified on {safeFormatDate(application.verifiedAt, 'MMM d, yyyy')}
+                    {t('cards.certificate.verifiedOn', { date: safeFormatDate(application.verifiedAt, 'MMM d, yyyy') })}
                   </p>
                 )}
                 {application.certificateNumber && (
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 break-all">
-                    Cert: {application.certificateNumber}
+                    {t('cards.certificate.certNumber', { number: application.certificateNumber })}
                   </p>
                 )}
               </div>
                 {certificate ? (
+                 <div className="flex flex-col gap-2">
                  <div className="flex flex-col sm:flex-row gap-2">
                    <Button
                      variant="primary"
@@ -413,8 +416,9 @@ const DashboardPage: React.FC = () => {
                      }}
                    >
                      <Award size={14} className="mr-1 sm:w-4 sm:h-4" />
-                     View
+                     {t('cards.certificate.view')}
                    </Button>
+                     {certificate.canDownload ? (
                   <Button
                     variant="outline"
                     size="sm"
@@ -422,49 +426,63 @@ const DashboardPage: React.FC = () => {
                     onClick={async () => {
                       if (application && certificate) {
                         try {
-                          // Verify certificate still exists before downloading
+                               // Verify certificate still exists and check download permission
                           const { certificateService } = await import('../../services/certificates');
                           const certCheck = await certificateService.getCertificateByApplicationId(application.id);
                           if (!certCheck) {
-                            showToast('Certificate is not available. Please contact administrator.', 'error');
+                            showToast(t('common:errors.notFound'), 'error');
                             return;
                           }
+                               // Check if download is enabled by admin (double-check)
+                               if (!certCheck.canDownload) {
+                                 showToast(t('cards.certificate.downloadDisabled'), 'error');
+                                 return;
+                               }
                           await downloadCertificate(application);
-                          showToast('Certificate downloaded successfully', 'success');
+                          showToast(t('common:success.downloaded'), 'success');
                         } catch (error: any) {
                           console.error('Failed to download certificate:', error);
-                          showToast(error.message || 'Failed to download certificate', 'error');
+                          showToast(error.message || t('common:errors.generic'), 'error');
                         }
                       }
                     }}
                   >
-                    Download PDF
+                    {t('cards.certificate.downloadPDF')}
                   </Button>
+                     ) : null}
+                   </div>
+                   {!certificate.canDownload && (
+                     <div className="p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                       <p className="text-[10px] sm:text-xs text-gray-600 text-center">
+                         {t('cards.certificate.downloadDisabled')}
+                       </p>
+                     </div>
+                   )}
                 </div>
               ) : (
                 <div className="p-2 sm:p-3 bg-gold-50 border border-gold-200 rounded-lg">
                   <p className="text-[10px] sm:text-xs text-gold-800 text-center">
-                    Your certificate is being prepared. You will receive a notification when it's ready for download.
+                    {t('cards.certificate.beingPrepared')}
                   </p>
                 </div>
               )}
             </div>
           ) : (
             <div>
-              <p className="text-[11px] sm:text-xs text-gray-500">Status</p>
+              <p className="text-[11px] sm:text-xs text-gray-500">{t('cards.certificate.status')}</p>
               <p className="font-medium text-xs sm:text-sm text-gray-900">
                 {application?.status === 'submitted' || application?.status === 'under_review'
-                  ? 'Under review'
+                  ? t('cards.certificate.underReview')
                   : application
-                  ? 'Pending verification'
-                  : 'No application'}
+                  ? t('cards.certificate.pendingVerification')
+                  : t('cards.certificate.noApplication')}
               </p>
               <p className="text-[10px] sm:text-xs text-gray-500 mt-1 leading-relaxed">
                 {application?.status === 'submitted' || application?.status === 'under_review'
-                  ? 'Certificate will be available once verified.'
+                  ? t('cards.certificate.willBeAvailable')
                   : application
-                  ? 'Complete and submit to proceed.'
-                  : 'Start your application first.'}
+                  ? t('cards.certificate.completeAndSubmit')
+                  : t('cards.certificate.startApplication')}
               </p>
             </div>
           )}
@@ -473,7 +491,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="mt-4 sm:mt-6">
-        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3">Quick Actions</h3>
+        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3">{t('quickActions.title')}</h3>
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
           <Button
             variant="outline"
@@ -481,7 +499,7 @@ const DashboardPage: React.FC = () => {
             onClick={() => navigate('/documents')}
           >
             <Upload size={18} className="sm:w-5 sm:h-5 text-gold-600" />
-            <span className="text-[10px] sm:text-xs text-center leading-tight">Upload<br className="sm:hidden" /> Docs</span>
+            <span className="text-[10px] sm:text-xs text-center leading-tight">{t('quickActions.uploadDocs')}</span>
           </Button>
           <Button
             variant="outline"
@@ -489,7 +507,7 @@ const DashboardPage: React.FC = () => {
             onClick={() => navigate('/appointments')}
           >
             <Calendar size={18} className="sm:w-5 sm:h-5 text-gold-600" />
-            <span className="text-[10px] sm:text-xs text-center leading-tight">Book<br className="sm:hidden" /> Appt</span>
+            <span className="text-[10px] sm:text-xs text-center leading-tight">{t('quickActions.bookAppt')}</span>
           </Button>
           <Button
             variant="outline"
@@ -497,7 +515,7 @@ const DashboardPage: React.FC = () => {
             onClick={() => navigate('/chat')}
           >
             <MessageSquare size={18} className="sm:w-5 sm:h-5 text-gold-600" />
-            <span className="text-[10px] sm:text-xs text-center leading-tight">Support</span>
+            <span className="text-[10px] sm:text-xs text-center leading-tight">{t('quickActions.support')}</span>
           </Button>
           <Button
             variant="outline"
@@ -505,7 +523,7 @@ const DashboardPage: React.FC = () => {
             onClick={() => navigate('/help-center')}
           >
             <FileText size={18} className="sm:w-5 sm:h-5 text-gold-600" />
-            <span className="text-[10px] sm:text-xs text-center leading-tight">Help</span>
+            <span className="text-[10px] sm:text-xs text-center leading-tight">{t('quickActions.help')}</span>
           </Button>
         </div>
       </div>

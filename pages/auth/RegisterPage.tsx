@@ -6,33 +6,37 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Phone, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import PhoneInput from '../../components/ui/PhoneInput';
 import Card from '../../components/ui/Card';
 
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
+const createRegisterSchema = (t: (key: string) => string) => z.object({
+  name: z.string().min(2, t('auth:validation.nameMin')),
+  email: z.string().email(t('auth:validation.emailRequired')),
   phone: z.string().optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, t('auth:validation.passwordMin')),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: t('auth:validation.passwordMatch'),
   path: ['confirmPassword'],
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>;
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register: registerUser, signInWithGoogle } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('auth');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>('');
   const [registeredPassword, setRegisteredPassword] = useState<string>('');
+
+  const registerSchema = createRegisterSchema(t);
 
   const {
     register,
@@ -63,7 +67,7 @@ const RegisterPage: React.FC = () => {
       .catch((error: any) => {
         // If registration fails, go back to form
         setShowConfirmation(false);
-        showToast(error.message || 'Registration failed. Please try again.', 'error');
+        showToast(error.message || t('errors.registrationFailed'), 'error');
       });
   };
 
@@ -73,7 +77,7 @@ const RegisterPage: React.FC = () => {
       await signInWithGoogle();
       // Note: signInWithGoogle will redirect to Google, so we don't need to handle navigation here
     } catch (error: any) {
-      showToast(error.message || 'Google sign-in failed. Please try again.', 'error');
+      showToast(error.message || t('errors.googleSignInFailed'), 'error');
       setIsGoogleLoading(false);
     }
   };
@@ -87,12 +91,12 @@ const RegisterPage: React.FC = () => {
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gold-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
               <CheckCircle size={20} className="sm:w-6 sm:h-6 text-gold-600" />
             </div>
-            <h1 className="font-serif text-lg sm:text-xl font-bold text-gray-900 mb-1 text-center">Check Your Email</h1>
+            <h1 className="font-serif text-lg sm:text-xl font-bold text-gray-900 mb-1 text-center">{t('register.confirmation.title')}</h1>
             <p className="text-xs sm:text-sm text-gray-600 text-center mb-1">
-              We've sent a confirmation email to <strong className="break-all">{registeredEmail}</strong>
+              {t('register.confirmation.message')} <strong className="break-all">{registeredEmail}</strong>
             </p>
             <p className="text-[10px] sm:text-xs text-gray-500 text-center leading-relaxed">
-              Please click the confirmation link in the email to activate your account.
+              {t('register.confirmation.instructions')}
             </p>
           </div>
           <div className="space-y-2">
@@ -106,7 +110,7 @@ const RegisterPage: React.FC = () => {
                 navigate('/auth/login');
               }}
             >
-              Go to Sign In
+              {t('register.confirmation.goToSignIn')}
               <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
             </Button>
             <Button
@@ -118,7 +122,7 @@ const RegisterPage: React.FC = () => {
                 setRegisteredEmail('');
               }}
             >
-              Back to Registration
+              {t('register.confirmation.backToRegistration')}
             </Button>
           </div>
         </Card>
@@ -128,15 +132,15 @@ const RegisterPage: React.FC = () => {
       <div className={showConfirmation ? 'hidden' : 'block'}>
         <Card className="p-4 sm:p-6 shadow-xl">
           <div className="mb-3 sm:mb-4">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">Create Account</h1>
-            <p className="text-xs sm:text-sm text-gray-600">Get started with your marriage registration</p>
+            <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{t('register.title')}</h1>
+            <p className="text-xs sm:text-sm text-gray-600">{t('register.subtitle')}</p>
           </div>
 
           <form id="register-form" onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 sm:space-y-3" autoComplete="on">
             <Input
-              label="Full Name"
+              label={t('register.nameLabel')}
               type="text"
-              placeholder="Ahmed Hassan"
+              placeholder={t('register.namePlaceholder')}
               leftIcon={<User size={16} className="sm:w-[18px] sm:h-[18px]" />}
               error={errors.name?.message}
               autoComplete="name"
@@ -145,9 +149,9 @@ const RegisterPage: React.FC = () => {
             />
 
             <Input
-              label="Email Address"
+              label={t('register.emailLabel')}
               type="email"
-              placeholder="you@example.com"
+              placeholder={t('register.emailPlaceholder')}
               leftIcon={<Mail size={16} className="sm:w-[18px] sm:h-[18px]" />}
               error={errors.email?.message}
               {...register('email', {
@@ -158,7 +162,7 @@ const RegisterPage: React.FC = () => {
             />
 
             <PhoneInput
-              label="Phone Number (Optional)"
+              label={t('register.phoneLabel')}
               leftIcon={<Phone size={16} className="sm:w-[18px] sm:h-[18px]" />}
               error={errors.phone?.message}
               autoComplete="tel"
@@ -169,9 +173,9 @@ const RegisterPage: React.FC = () => {
             />
 
             <Input
-              label="Password"
+              label={t('register.passwordLabel')}
               type="password"
-              placeholder="Create a strong password"
+              placeholder={t('register.passwordPlaceholder')}
               leftIcon={<Lock size={16} className="sm:w-[18px] sm:h-[18px]" />}
               error={errors.password?.message}
               showPasswordToggle={true}
@@ -183,9 +187,9 @@ const RegisterPage: React.FC = () => {
             />
 
             <Input
-              label="Confirm Password"
+              label={t('register.confirmPasswordLabel')}
               type="password"
-              placeholder="Confirm your password"
+              placeholder={t('register.confirmPasswordPlaceholder')}
               leftIcon={<Lock size={16} className="sm:w-[18px] sm:h-[18px]" />}
               error={errors.confirmPassword?.message}
               showPasswordToggle={true}
@@ -203,7 +207,7 @@ const RegisterPage: React.FC = () => {
               isLoading={isLoading}
               className="w-full !mt-3"
             >
-              Create Account
+              {t('register.signUp')}
               <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
             </Button>
           </form>
@@ -214,7 +218,7 @@ const RegisterPage: React.FC = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-[10px] sm:text-xs">
-                <span className="px-2 sm:px-3 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 sm:px-3 bg-white text-gray-500">{t('register.orContinue')}</span>
               </div>
             </div>
 
@@ -244,15 +248,15 @@ const RegisterPage: React.FC = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Sign up with Google
+              {t('register.googleSignIn')}
             </Button>
           </div>
 
           <div className="mt-3 sm:mt-4 text-center">
             <p className="text-[11px] sm:text-xs text-gray-600">
-              Already have an account?{' '}
+              {t('register.haveAccount')}{' '}
               <Link to="/auth/login" className="text-gold-600 hover:text-gold-700 font-medium">
-                Sign in
+                {t('register.loginLink')}
               </Link>
             </p>
           </div>

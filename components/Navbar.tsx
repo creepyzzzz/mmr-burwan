@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -29,32 +32,33 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="font-serif font-bold text-gray-900 leading-none text-sm sm:text-lg tracking-tight">MMR Burwan</span>
-            <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-gold-600 font-medium">Official Portal</span>
+            <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-gold-600 font-medium">{t('navigation.officialPortal')}</span>
           </div>
         </div>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Home</Link>
-          <a href="#services" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Services</a>
-          <Link to="/verify" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Verify</Link>
-          <Link to="/help" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">Help</Link>
+          <Link to="/" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">{t('navigation.home')}</Link>
+          <a href="#services" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">{t('navigation.services')}</a>
+          <Link to="/verify" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">{t('navigation.verify')}</Link>
+          <Link to="/help" className="text-sm font-medium text-gray-600 hover:text-gold-600 transition-colors">{t('navigation.help')}</Link>
         </nav>
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-4">
+            <LanguageSwitcher />
             <button 
               onClick={() => navigate('/auth/login')}
               className="text-sm font-medium text-gold-700 hover:text-gold-900 px-3 py-2 transition-colors"
             >
-                Log In
+                {t('buttons.login')}
             </button>
             <button 
               onClick={() => navigate('/auth/register')}
               className="bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
             >
                 <User size={16} />
-                Registration
+                {t('buttons.register')}
             </button>
         </div>
 
@@ -70,12 +74,15 @@ const Navbar: React.FC = () => {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 p-4 sm:p-6 shadow-lg flex flex-col gap-3 sm:gap-4 animate-fade-in">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">Home</Link>
-          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">Services</a>
-          <Link to="/verify" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">Verify</Link>
-          <Link to="/help" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">Help</Link>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">{t('navigation.home')}</Link>
+          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">{t('navigation.services')}</a>
+          <Link to="/verify" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">{t('navigation.verify')}</Link>
+          <Link to="/help" onClick={() => setMobileMenuOpen(false)} className="text-sm sm:text-base font-medium text-gray-800 py-1">{t('navigation.help')}</Link>
           <hr className="border-gray-100"/>
           <div className="flex flex-col gap-2">
+            <div className="w-full">
+              <LanguageSwitcher />
+            </div>
             <button 
               onClick={() => {
                 navigate('/auth/login');
@@ -83,7 +90,7 @@ const Navbar: React.FC = () => {
               }}
               className="w-full bg-white border border-gray-200 text-gray-800 py-2.5 sm:py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
             >
-              Log In
+              {t('buttons.login')}
             </button>
           <button 
             onClick={() => {
@@ -92,7 +99,7 @@ const Navbar: React.FC = () => {
             }}
               className="w-full bg-gold-500 text-white py-2.5 sm:py-3 rounded-lg text-sm font-medium hover:bg-gold-600 transition-colors"
           >
-            Registration
+            {t('buttons.register')}
           </button>
           </div>
         </div>

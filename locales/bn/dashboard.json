@@ -1,0 +1,74 @@
+{
+  "title": "স্বাগতম, {{name}}!",
+  "subtitle": "আপনার নিবন্ধন অগ্রগতি",
+  "logout": "লগআউট",
+  "cards": {
+    "profile": {
+      "title": "প্রোফাইল",
+      "complete": "{{percentage}}% সম্পূর্ণ",
+      "updateProfile": "প্রোফাইল আপডেট করুন"
+    },
+    "application": {
+      "title": "আবেদন",
+      "notStarted": "শুরু হয়নি",
+      "startApplication": "আপনার আবেদন শুরু করুন",
+      "viewApplication": "আবেদন দেখুন",
+      "applicationSubmitted": "আবেদন জমা দেওয়া হয়েছে",
+      "continue": "চালিয়ে যান",
+      "start": "আবেদন শুরু করুন",
+      "steps": {
+        "groom": "বর বিবরণ",
+        "bride": "কনে বিবরণ",
+        "documents": "নথি",
+        "confirmation": "নিশ্চিতকরণ",
+        "review": "পর্যালোচনা"
+      }
+    },
+    "messages": {
+      "title": "বার্তা",
+      "unread": "{{count}}টি অপঠিত",
+      "noNewMessages": "কোনও নতুন বার্তা নেই",
+      "viewMessages": "বার্তা দেখুন"
+    },
+    "appointment": {
+      "title": "অ্যাপয়েন্টমেন্ট",
+      "dateTime": "তারিখ ও সময়",
+      "viewPass": "পাস দেখুন",
+      "reschedule": "পুনঃনির্ধারণ",
+      "noAppointment": "কোনও অ্যাপয়েন্টমেন্ট নির্ধারিত নেই",
+      "bookAppointment": "অ্যাপয়েন্টমেন্ট বুক করুন"
+    },
+    "certificate": {
+      "title": "সার্টিফিকেট",
+      "verified": "যাচাইকৃত",
+      "status": "অবস্থা",
+      "applicationVerified": "আবেদন যাচাই করা হয়েছে",
+      "verifiedOn": "{{date}} তারিখে যাচাই করা হয়েছে",
+      "certNumber": "সার্টিফিকেট: {{number}}",
+      "view": "দেখুন",
+      "downloadPDF": "PDF ডাউনলোড",
+      "downloadDisabled": "ডাউনলোড অনুমতি বর্তমানে নিষ্ক্রিয়। সার্টিফিকেট ডাউনলোড সক্রিয় করতে অনুগ্রহ করে প্রশাসকের সাথে যোগাযোগ করুন।",
+      "beingPrepared": "আপনার সার্টিফিকেট প্রস্তুত করা হচ্ছে। এটি ডাউনলোডের জন্য প্রস্তুত হলে আপনাকে একটি বিজ্ঞপ্তি দেওয়া হবে।",
+      "underReview": "পর্যালোচনাধীন",
+      "pendingVerification": "যাচাইকরণের অপেক্ষায়",
+      "noApplication": "কোনও আবেদন নেই",
+      "willBeAvailable": "যাচাইকরণের পর সার্টিফিকেট উপলব্ধ হবে।",
+      "completeAndSubmit": "সম্পূর্ণ করুন এবং জমা দিন।",
+      "startApplication": "প্রথমে আপনার আবেদন শুরু করুন।"
+    }
+  },
+  "quickActions": {
+    "title": "দ্রুত ক্রিয়া",
+    "uploadDocs": "নথি আপলোড",
+    "bookAppt": "অ্যাপয়েন্টমেন্ট বুক",
+    "support": "সাপোর্ট",
+    "help": "সাহায্য"
+  },
+  "status": {
+    "submitted": "জমা দেওয়া হয়েছে",
+    "under_review": "পর্যালোচনাধীন",
+    "approved": "অনুমোদিত",
+    "confirmed": "নিশ্চিত",
+    "pending": "অপেক্ষমান"
+  }
+}

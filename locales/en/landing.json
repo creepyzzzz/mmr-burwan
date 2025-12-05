@@ -1,0 +1,119 @@
+{
+  "hero": {
+    "badge": "Official Government Service",
+    "title": "Digital marriage",
+    "titleHighlight": "registration",
+    "titleEnd": "simplified.",
+    "description": "Apply from home. A respectful, secure, and modern approach to Nikah registration for the digital age.",
+    "getStarted": "Get Started",
+    "howItWorks": "How it works",
+    "stats": {
+      "registrations": "Registrations",
+      "secureData": "Secure Data",
+      "processing": "Processing"
+    },
+    "actions": {
+      "marriageRegistration": "Marriage Registration",
+      "marriageSubtitle": "Login • Upload • Download Certificate",
+      "divorceRegistration": "Divorce Registration",
+      "divorceSubtitle": "Talaq / Khula",
+      "contactSupport": "Contact Support",
+      "contactSubtitle": "24/7 Helpline",
+      "verifyCertificate": "Verify Certificate",
+      "verifySubtitle": "Check Validity"
+    }
+  },
+  "features": {
+    "title": "Modernizing Tradition",
+    "subtitle": "We've streamlined the official Nikah registration process to be respectful, efficient, and accessible.",
+    "remoteAccess": {
+      "title": "Remote Access",
+      "desc": "Apply for registration from anywhere, anytime without queuing."
+    },
+    "fastProcessing": {
+      "title": "Fast Processing",
+      "desc": "Digital verification speeds up the process to under 24 hours."
+    },
+    "secureData": {
+      "title": "Secure Data",
+      "desc": "End-to-end encryption ensures your privacy is never compromised."
+    },
+    "paperless": {
+      "title": "Paperless",
+      "desc": "Eco-friendly digital certificates accessible on your mobile."
+    }
+  },
+  "howItWorks": {
+    "badge": "The Process",
+    "title": "How it Works",
+    "steps": {
+      "register": {
+        "title": "Register",
+        "desc": "Create your account using your mobile number."
+      },
+      "upload": {
+        "title": "Upload",
+        "desc": "Submit necessary Nikah documents digitally."
+      },
+      "verify": {
+        "title": "Verify",
+        "desc": "Authorities verify your details securely."
+      },
+      "download": {
+        "title": "Download",
+        "desc": "Get your digital marriage certificate instantly."
+      }
+    }
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "Comprehensive digital solutions for your marital records.",
+    "marriageRegistration": {
+      "title": "Marriage Registration",
+      "subtitle": "Login • Upload • Download"
+    },
+    "divorceRegistration": {
+      "title": "Divorce Registration",
+      "subtitle": "Talaq / Khula Registration"
+    },
+    "certificateVerification": {
+      "title": "Certificate Verification",
+      "subtitle": "Check Validity"
+    }
+  },
+  "security": {
+    "title": "Government-Grade Security & Trust",
+    "description": "MMR Burwan operates under strict government protocols. Your personal data is encrypted, stored securely, and accessible only to authorized personnel for verification purposes.",
+    "encryption": {
+      "title": "256-bit Encryption",
+      "desc": "Bank-level security for all your documents."
+    },
+    "auditLogs": {
+      "title": "Secure Audit Logs",
+      "desc": "Every access request is logged and monitored."
+    },
+    "verification": {
+      "title": "Official Verification",
+      "desc": "Certificates are digitally signed and verifiable."
+    },
+    "portal": {
+      "title": "Official Portal",
+      "subtitle": "Verified & Secure Environment",
+      "status": "System Operational"
+    }
+  },
+  "appointment": {
+    "title": "One Visit Only",
+    "description": "Schedule your appointment online. You only need to visit the office once for final verification. Use your digital QR Pass for express check-in.",
+    "bookSlot": "Book your slot online",
+    "scanQR": "Scan QR at reception",
+    "appointmentLabel": "Appointment",
+    "exampleNames": "Ahmed & Fatima",
+    "exampleDate": "Oct 24, 2023 • 10:00 AM"
+  },
+  "cta": {
+    "title": "Ready to register your marriage?",
+    "subtitle": "Join thousands of couples who have simplified their official paperwork with MMR Burwan.",
+    "button": "Start Registration"
+  }
+}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { appointmentService } from '../../services/appointments';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { AppointmentSlot, Appointment } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -15,6 +16,7 @@ const AppointmentsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('appointments');
   const [slots, setSlots] = useState<AppointmentSlot[]>([]);
   const [userAppointment, setUserAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,11 +95,11 @@ const AppointmentsPage: React.FC = () => {
             className="flex-shrink-0 !px-2 sm:!px-3"
           >
             <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px] mr-1 sm:mr-2" />
-            <span className="text-xs sm:text-sm">Back</span>
+            <span className="text-xs sm:text-sm">{t('back')}</span>
           </Button>
         </div>
-        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Book Appointment</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Select an available time slot</p>
+        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{t('title')}</h1>
+        <p className="text-xs sm:text-sm text-gray-600">{t('subtitle')}</p>
       </div>
 
       {userAppointment && (
@@ -198,8 +200,8 @@ const AppointmentsPage: React.FC = () => {
       {slots.length === 0 && (
         <Card className="p-8 sm:p-12 text-center">
           <Calendar size={36} className="sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3 sm:mb-4" />
-          <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2">No Available Slots</h3>
-          <p className="text-xs sm:text-sm text-gray-500">Check back later for new slots.</p>
+          <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2">{t('noAvailableSlots')}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">{t('checkBackLater')}</p>
         </Card>
       )}
     </div>

@@ -1,20 +1,22 @@
 import React from 'react';
 import { UserPlus, Upload, CheckCircle, Download } from 'lucide-react';
-
-const steps = [
-  { id: 1, title: "Register", desc: "Create your account using your mobile number.", icon: UserPlus },
-  { id: 2, title: "Upload", desc: "Submit necessary Nikah documents digitally.", icon: Upload },
-  { id: 3, title: "Verify", desc: "Authorities verify your details securely.", icon: CheckCircle },
-  { id: 4, title: "Download", desc: "Get your digital marriage certificate instantly.", icon: Download },
-];
+import { useTranslation } from '../hooks/useTranslation';
 
 const HowItWorks: React.FC = () => {
+  const { t } = useTranslation('landing');
+  
+  const steps = [
+    { id: 1, title: t('howItWorks.steps.register.title'), desc: t('howItWorks.steps.register.desc'), icon: UserPlus },
+    { id: 2, title: t('howItWorks.steps.upload.title'), desc: t('howItWorks.steps.upload.desc'), icon: Upload },
+    { id: 3, title: t('howItWorks.steps.verify.title'), desc: t('howItWorks.steps.verify.desc'), icon: CheckCircle },
+    { id: 4, title: t('howItWorks.steps.download.title'), desc: t('howItWorks.steps.download.desc'), icon: Download },
+  ];
   return (
     <section id="how-it-works" className="py-14 sm:py-20 lg:py-24 px-4 sm:px-6 bg-rose-50/50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10 sm:mb-14 lg:mb-20">
-            <span className="text-gold-600 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1.5 sm:mb-2 block">The Process</span>
-            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-gray-900">How it Works</h2>
+            <span className="text-gold-600 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1.5 sm:mb-2 block">{t('howItWorks.badge')}</span>
+            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-gray-900">{t('howItWorks.title')}</h2>
         </div>
 
         <div className="relative">

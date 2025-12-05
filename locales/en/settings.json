@@ -1,0 +1,20 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage your account settings",
+  "back": "Back",
+  "personalInfo": "Personal Information",
+  "partnerInfo": "Partner Information",
+  "address": "Address",
+  "accountActions": "Account Actions",
+  "changePassword": "Change Password",
+  "downloadData": "Download My Data",
+  "save": "Save Changes",
+  "saving": "Saving...",
+  "messages": {
+    "saveSuccess": "Settings saved successfully",
+    "saveFailed": "Failed to save settings",
+    "downloadSuccess": "Data downloaded successfully",
+    "downloadFailed": "Failed to download data",
+    "passwordChangeSoon": "Password change feature will be available soon"
+  }
+}

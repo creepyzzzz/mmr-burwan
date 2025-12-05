@@ -1,0 +1,13 @@
+{
+  "title": "Support Chat",
+  "back": "Back",
+  "noMessages": "No messages",
+  "startConversation": "Start the conversation!",
+  "selectConversation": "Select a conversation",
+  "chooseFromList": "Choose from the list to start",
+  "typeMessage": "Type message...",
+  "messages": {
+    "loadFailed": "Failed to load conversations",
+    "sendFailed": "Failed to send message"
+  }
+}

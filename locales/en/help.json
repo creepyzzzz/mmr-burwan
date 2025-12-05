@@ -1,0 +1,27 @@
+{
+  "title": "Help Center",
+  "faqs": {
+    "title": "Frequently Asked Questions",
+    "startRegistration": {
+      "question": "How do I start my marriage registration?",
+      "answer": "Sign up for an account, complete the onboarding process, and then start your application from the dashboard."
+    },
+    "documents": {
+      "question": "What documents do I need?",
+      "answer": "You will need: National ID (front and back), passport-sized photos (2 copies), birth certificate, and previous marriage certificate if applicable."
+    },
+    "processTime": {
+      "question": "How long does the process take?",
+      "answer": "Typically, the registration process takes 7-14 business days after submission of all required documents."
+    },
+    "reschedule": {
+      "question": "Can I reschedule my appointment?",
+      "answer": "Yes, you can reschedule your appointment from the Appointments page up to 24 hours before your scheduled time."
+    }
+  },
+  "stillNeedHelp": "Still need help?",
+  "getInTouch": "Get in touch with our support team",
+  "startChat": "Start Chat",
+  "emailSupport": "Email Support",
+  "callUs": "Call Us"
+}

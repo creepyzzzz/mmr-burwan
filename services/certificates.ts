@@ -34,6 +34,7 @@ export const certificateService = {
       registrationDate: data.registration_date,
       groomName: data.groom_name,
       brideName: data.bride_name,
+      canDownload: data.can_download || false,
     };
   },
 
@@ -67,6 +68,7 @@ export const certificateService = {
       registrationDate: data.registration_date,
       groomName: data.groom_name,
       brideName: data.bride_name,
+      canDownload: data.can_download || false,
     };
   },
 
@@ -109,7 +111,8 @@ export const certificateService = {
     certificateNumber?: string,
     registrationDate?: string,
     groomName?: string,
-    brideName?: string
+    brideName?: string,
+    canDownload: boolean = false
   ): Promise<Certificate> {
     const verificationId = `MMR-BW-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
@@ -127,6 +130,7 @@ export const certificateService = {
         registration_date: registrationDate || null,
         groom_name: groomName || null,
         bride_name: brideName || null,
+        can_download: canDownload,
       })
       .select()
       .single();
@@ -149,6 +153,7 @@ export const certificateService = {
       registrationDate: data.registration_date,
       groomName: data.groom_name,
       brideName: data.bride_name,
+      canDownload: data.can_download || false,
     };
   },
 
@@ -177,6 +182,7 @@ export const certificateService = {
       registrationDate: cert.registration_date,
       groomName: cert.groom_name,
       brideName: cert.bride_name,
+      canDownload: cert.can_download || false,
     }));
   },
 
@@ -210,7 +216,19 @@ export const certificateService = {
       registrationDate: data.registration_date,
       groomName: data.groom_name,
       brideName: data.bride_name,
+      canDownload: data.can_download || false,
     };
+  },
+
+  async updateDownloadPermission(certificateId: string, canDownload: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('certificates')
+      .update({ can_download: canDownload })
+      .eq('id', certificateId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 
   async getSignedUrl(certificateId: string): Promise<string> {

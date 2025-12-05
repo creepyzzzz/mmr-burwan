@@ -311,6 +311,45 @@ export const adminService = {
       details: { certificateNumber, registrationDate },
     });
 
+    // Automatically generate certificate when application is verified
+    try {
+      // Check if certificate already exists
+      const existingCert = await certificateService.getCertificateByApplicationId(applicationId);
+      
+      if (!existingCert) {
+        // Generate and upload certificate PDF
+        const mappedApplication = applicationService.mapApplication(data);
+        const { pdfUrl, certificateData } = await generateAndUploadCertificate(mappedApplication, supabase);
+        
+        // Extract user names from application data
+        const userDetails = data.user_details as any;
+        const partnerDetails = (data.partner_form || data.partner_details) as any;
+        
+        const groomName = userDetails?.firstName && userDetails?.lastName
+          ? `${userDetails.firstName} ${userDetails.lastName}`.trim()
+          : userDetails?.firstName || 'N/A';
+        
+        const brideName = partnerDetails?.firstName && partnerDetails?.lastName
+          ? `${partnerDetails.firstName} ${partnerDetails.lastName}`.trim()
+          : partnerDetails?.firstName || 'N/A';
+        
+        // Create certificate record in database (canDownload defaults to false)
+        await certificateService.issueCertificate(
+          data.user_id,
+          applicationId,
+          pdfUrl,
+          certificateNumber,
+          registrationDate,
+          groomName,
+          brideName,
+          false // canDownload defaults to false - admin must enable it
+        );
+      }
+    } catch (certError: any) {
+      // Log error but don't fail the verification - certificate generation can be retried
+      console.error('Failed to auto-generate certificate during verification:', certError);
+    }
+
     return applicationService.mapApplication(data);
   },
 
@@ -373,15 +412,16 @@ export const adminService = {
       : partnerDetails?.firstName || 'N/A';
     
     // Create certificate record in database
-    await certificateService.issueCertificate(
-      appData.user_id,
-      applicationId,
-      pdfUrl,
-      appData.certificate_number,
-      appData.registration_date,
-      groomName,
-      brideName
-    );
+        await certificateService.issueCertificate(
+          appData.user_id,
+          applicationId,
+          pdfUrl,
+          appData.certificate_number,
+          appData.registration_date,
+          groomName,
+          brideName,
+          false // canDownload defaults to false - admin must enable it
+        );
 
     // Get user details for personalized notification
     const userName = userDetails?.firstName 

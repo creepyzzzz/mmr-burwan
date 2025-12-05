@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import { XCircle, CheckCircle, Info, Upload, Award, Download, Loader2 } from 'lucide-react';
@@ -28,6 +28,37 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
   const { user } = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [canDownload, setCanDownload] = useState<boolean | null>(null);
+  const [isCheckingPermission, setIsCheckingPermission] = useState(false);
+
+  // Check download permission when modal opens for certificate_ready notifications
+  useEffect(() => {
+    const checkDownloadPermission = async () => {
+      if (!isOpen || !notification || notification.type !== 'certificate_ready' || !user) {
+        setCanDownload(null);
+        return;
+      }
+
+      setIsCheckingPermission(true);
+      try {
+        const application = await applicationService.getApplication(user.id);
+        if (application && application.id) {
+          const { certificateService } = await import('../../services/certificates');
+          const certificate = await certificateService.getCertificateByApplicationId(application.id);
+          setCanDownload(certificate?.canDownload || false);
+        } else {
+          setCanDownload(false);
+        }
+      } catch (error) {
+        console.error('Failed to check download permission:', error);
+        setCanDownload(false);
+      } finally {
+        setIsCheckingPermission(false);
+      }
+    };
+
+    checkDownloadPermission();
+  }, [isOpen, notification, user]);
 
   if (!notification || !isOpen) return null;
 
@@ -131,52 +162,72 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
             </Button>
           )}
           {notification.type === 'certificate_ready' && user && (
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={isDownloading}
-              onClick={async () => {
-                if (!user) return;
-                setIsDownloading(true);
-                setDownloadError(null);
-                try {
-                  const application = await applicationService.getApplication(user.id);
-                  if (!application) throw new Error('Application not found');
-                  if (!application.verified) throw new Error('Application is not yet verified');
-                  
-                  // Check if certificate exists
-                  const { certificateService } = await import('../../services/certificates');
-                  const certificate = await certificateService.getCertificateByApplicationId(application.id);
-                  if (!certificate) {
-                    throw new Error('Certificate is not yet available. Please wait for the administrator to generate it.');
-                  }
-                  
-                  await downloadCertificate(application);
-                  onClose();
-                  if (onNavigate) onNavigate();
-                } catch (error: any) {
-                  console.error('Failed to download certificate:', error);
-                  setDownloadError(error.message || 'Failed to download certificate');
-                } finally {
-                  setIsDownloading(false);
-                }
-              }}
-              className="flex-1 !text-xs sm:!text-sm bg-gold-500 hover:bg-gold-600"
-            >
-              {isDownloading ? (
-                <>
-                  <Loader2 size={14} className="sm:w-4 sm:h-4 mr-1.5 animate-spin" />
-                  <span className="hidden sm:inline">Downloading...</span>
-                  <span className="sm:hidden">Loading</span>
-                </>
+            <>
+              {isCheckingPermission ? (
+                <div className="flex-1 flex items-center justify-center p-2 sm:p-3">
+                  <Loader2 size={14} className="sm:w-4 sm:h-4 animate-spin text-gray-400" />
+                  <span className="text-[10px] sm:text-xs text-gray-500 ml-2">Checking permission...</span>
+                </div>
+              ) : canDownload ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={isDownloading}
+                  onClick={async () => {
+                    if (!user) return;
+                    setIsDownloading(true);
+                    setDownloadError(null);
+                    try {
+                      const application = await applicationService.getApplication(user.id);
+                      if (!application) throw new Error('Application not found');
+                      if (!application.verified) throw new Error('Application is not yet verified');
+                      
+                      // Check if certificate exists and download is enabled (double-check)
+                      const { certificateService } = await import('../../services/certificates');
+                      const certificate = await certificateService.getCertificateByApplicationId(application.id);
+                      if (!certificate) {
+                        throw new Error('Certificate is not yet available. Please wait for the administrator to generate it.');
+                      }
+                      
+                      // Check if download is enabled by admin
+                      if (!certificate.canDownload) {
+                        throw new Error('Download permission has not been granted yet. Please contact administrator.');
+                      }
+                      
+                      await downloadCertificate(application);
+                      onClose();
+                      if (onNavigate) onNavigate();
+                    } catch (error: any) {
+                      console.error('Failed to download certificate:', error);
+                      setDownloadError(error.message || 'Failed to download certificate');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }}
+                  className="flex-1 !text-xs sm:!text-sm bg-gold-500 hover:bg-gold-600"
+                >
+                  {isDownloading ? (
+                    <>
+                      <Loader2 size={14} className="sm:w-4 sm:h-4 mr-1.5 animate-spin" />
+                      <span className="hidden sm:inline">Downloading...</span>
+                      <span className="sm:hidden">Loading</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={14} className="sm:w-4 sm:h-4 mr-1.5" />
+                      <span className="hidden sm:inline">Download Certificate</span>
+                      <span className="sm:hidden">Download</span>
+                    </>
+                  )}
+                </Button>
               ) : (
-                <>
-                  <Download size={14} className="sm:w-4 sm:h-4 mr-1.5" />
-                  <span className="hidden sm:inline">Download Certificate</span>
-                  <span className="sm:hidden">Download</span>
-                </>
+                <div className="flex-1 p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl">
+                  <p className="text-[10px] sm:text-xs text-gray-600 text-center">
+                    Download permission is currently disabled. Please contact the administrator to enable certificate download.
+                  </p>
+                </div>
               )}
-            </Button>
+            </>
           )}
         </div>
       </div>

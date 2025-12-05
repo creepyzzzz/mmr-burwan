@@ -6,20 +6,22 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
 import { authService } from '../../services/auth';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 
-const magicLinkSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+const createMagicLinkSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t('auth:validation.emailRequired')),
 });
 
-type MagicLinkFormData = z.infer<typeof magicLinkSchema>;
+type MagicLinkFormData = z.infer<ReturnType<typeof createMagicLinkSchema>>;
 
 const MagicLinkPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useNotification();
+  const { t } = useTranslation('auth');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   // Supabase sends token_hash and type as query params
@@ -28,6 +30,8 @@ const MagicLinkPage: React.FC = () => {
   const code = searchParams.get('code');
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
+
+  const magicLinkSchema = createMagicLinkSchema(t);
 
   const {
     register,
@@ -47,7 +51,7 @@ const MagicLinkPage: React.FC = () => {
     // Handle OAuth callback (Google, etc.)
     // Supabase OAuth redirects will have code or error in URL
     if (error) {
-      showToast(errorDescription || 'Authentication failed. Please try again.', 'error');
+      showToast(errorDescription || t('errors.authenticationFailed'), 'error');
       navigate('/auth/login');
       return;
     }
@@ -66,7 +70,7 @@ const MagicLinkPage: React.FC = () => {
     try {
       // Verify the magic link - this will automatically create a session
       await authService.verifyMagicLink(tokenHash);
-      showToast('Successfully signed in!', 'success');
+      showToast(t('success.signedIn'), 'success');
       
       // Get the current user to determine redirect
       const currentUser = await authService.getCurrentUser();
@@ -76,7 +80,7 @@ const MagicLinkPage: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (error: any) {
-      showToast(error.message || 'Invalid or expired magic link', 'error');
+      showToast(error.message || t('errors.invalidMagicLink'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +102,7 @@ const MagicLinkPage: React.FC = () => {
       }
       
       if (currentUser) {
-        showToast('Successfully signed in!', 'success');
+        showToast(t('success.signedIn'), 'success');
         
         // Redirect based on user role
         if (currentUser.role === 'admin') {
@@ -108,11 +112,11 @@ const MagicLinkPage: React.FC = () => {
         }
       } else {
         // If no user after OAuth, something went wrong
-        showToast('Authentication failed. Please try again.', 'error');
+        showToast(t('errors.authenticationFailed'), 'error');
         navigate('/auth/login');
       }
     } catch (error: any) {
-      showToast(error.message || 'Authentication failed. Please try again.', 'error');
+      showToast(error.message || t('errors.authenticationFailed'), 'error');
       navigate('/auth/login');
     } finally {
       setIsLoading(false);
@@ -124,9 +128,9 @@ const MagicLinkPage: React.FC = () => {
     try {
       await authService.sendMagicLink(data.email);
       setIsSubmitted(true);
-      showToast('Magic link sent to your email', 'success');
+      showToast(t('success.magicLinkSent'), 'success');
     } catch (error: any) {
-      showToast(error.message || 'Failed to send magic link. Please try again.', 'error');
+      showToast(error.message || t('errors.magicLinkFailed'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -139,14 +143,14 @@ const MagicLinkPage: React.FC = () => {
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gold-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
             <CheckCircle size={20} className="sm:w-6 sm:h-6 text-gold-600" />
           </div>
-          <h1 className="font-serif text-lg sm:text-xl font-bold text-gray-900 mb-1">Check Your Email</h1>
+          <h1 className="font-serif text-lg sm:text-xl font-bold text-gray-900 mb-1">{t('magicLink.success.title')}</h1>
           <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-            We've sent a magic link to your email. Click the link to sign in instantly.
+            {t('magicLink.success.message')}
           </p>
         </div>
         <Link to="/auth/login">
           <Button variant="ghost" size="sm" className="w-full">
-            Back to Sign In
+            {t('magicLink.backToSignIn')}
           </Button>
         </Link>
       </Card>
@@ -156,17 +160,17 @@ const MagicLinkPage: React.FC = () => {
   return (
     <Card className="p-4 sm:p-6 shadow-xl">
       <div className="mb-3 sm:mb-5">
-        <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">Magic Link Sign In</h1>
+        <h1 className="font-serif text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{t('magicLink.title')}</h1>
         <p className="text-xs sm:text-sm text-gray-600">
-          Enter your email for a passwordless sign in link.
+          {t('magicLink.subtitle')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
         <Input
-          label="Email Address"
+          label={t('magicLink.emailLabel')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('magicLink.emailPlaceholder')}
           leftIcon={<Mail size={16} className="sm:w-[18px] sm:h-[18px]" />}
           error={errors.email?.message}
           {...register('email')}
@@ -180,7 +184,7 @@ const MagicLinkPage: React.FC = () => {
           isLoading={isLoading}
           className="w-full"
         >
-          Send Magic Link
+          {t('magicLink.sendMagicLink')}
           <ArrowRight size={14} className="ml-1.5 sm:w-4 sm:h-4" />
         </Button>
       </form>
@@ -190,7 +194,7 @@ const MagicLinkPage: React.FC = () => {
           to="/auth/login"
           className="text-[11px] sm:text-xs text-gold-600 hover:text-gold-700 font-medium"
         >
-          Back to Sign In
+          {t('magicLink.backToSignIn')}
         </Link>
       </div>
     </Card>

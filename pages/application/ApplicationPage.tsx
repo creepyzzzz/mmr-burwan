@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
 import { ApplicationProvider, useApplication } from '../../contexts/ApplicationContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { documentService } from '../../services/documents';
 import { safeFormatDate } from '../../utils/dateUtils';
 import Stepper from '../../components/ui/Stepper';
@@ -19,14 +20,6 @@ import Modal from '../../components/ui/Modal';
 import ApplicationSuccessModal from '../../components/ApplicationSuccessModal';
 import StateDistrictSelector from '../../components/StateDistrictSelector';
 import { ArrowRight, ArrowLeft, Save, Upload, X, FileText, Edit, CheckCircle, Eye, Download, LogOut } from 'lucide-react';
-
-const applicationSteps = [
-  { id: 'groom', label: 'Groom Details' },
-  { id: 'bride', label: 'Bride Details' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'declarations', label: 'Confirmation' },
-  { id: 'review', label: 'Review' },
-];
 
 // Groom Details Schema (User personal + address)
 const groomSchema = z.object({
@@ -101,6 +94,15 @@ const ApplicationFormContent: React.FC = () => {
   const { user } = useAuth();
   const { application, updateDraft, submitApplication, isLoading, refreshApplication } = useApplication();
   const { showToast } = useNotification();
+  const { t } = useTranslation('application');
+  
+  const applicationSteps = [
+    { id: 'groom', label: t('steps.groom') },
+    { id: 'bride', label: t('steps.bride') },
+    { id: 'documents', label: t('steps.documents') },
+    { id: 'declarations', label: t('steps.declarations') },
+    { id: 'review', label: t('steps.review') },
+  ];
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
@@ -2628,13 +2630,13 @@ const ApplicationFormContent: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
-                  <h3 className="font-semibold text-rose-900 text-lg">Unsaved Changes</h3>
+                  <h3 className="font-semibold text-rose-900 text-lg">{t('messages.unsavedChanges')}</h3>
                 </div>
                 <p className="text-rose-800 mb-3">
-                  You have unsaved changes. If you exit now, your changes will not be saved.
+                  {t('messages.unsavedChangesDesc')}
                 </p>
                 <p className="text-sm text-rose-700 mb-3">
-                  Would you like to save your progress as a draft before exiting?
+                  {t('messages.saveBeforeExit')}
                 </p>
                 <div className="flex gap-3">
                   <Button
@@ -2645,7 +2647,7 @@ const ApplicationFormContent: React.FC = () => {
                     }}
                     className="border-rose-300 text-rose-700 hover:bg-rose-100"
                   >
-                    Exit Without Saving
+                    {t('messages.exitWithoutSaving')}
                   </Button>
                   <Button
                     variant="primary"
@@ -2654,7 +2656,7 @@ const ApplicationFormContent: React.FC = () => {
                     className="bg-rose-600 hover:bg-rose-700"
                   >
                     <Save size={18} className="mr-2" />
-                    Save Draft & Exit
+                    {t('messages.saveDraftExit')}
                   </Button>
                 </div>
               </div>
@@ -2821,7 +2823,7 @@ const ApplicationFormContent: React.FC = () => {
             className="!text-xs sm:!text-sm order-2 sm:order-1"
           >
             <ArrowLeft size={14} className="sm:w-4 sm:h-4 mr-1.5" />
-            Back
+            {t('buttons.previous')}
           </Button>
           <div className="flex gap-2 sm:gap-3 order-1 sm:order-2">
             <Button
@@ -2833,7 +2835,7 @@ const ApplicationFormContent: React.FC = () => {
               className="!text-xs sm:!text-sm flex-1 sm:flex-initial"
             >
               <Save size={14} className="sm:w-4 sm:h-4 mr-1.5" />
-              <span className="hidden sm:inline">Save</span> Draft
+              <span className="hidden sm:inline">{t('buttons.save')}</span> {t('common:buttons.save')}
             </Button>
             <Button
               variant="primary"
@@ -2848,9 +2850,9 @@ const ApplicationFormContent: React.FC = () => {
             >
               {currentStep === applicationSteps.length - 1 
                 ? (application?.status === 'submitted' || application?.status === 'approved' || application?.status === 'under_review')
-                  ? 'Submitted'
-                  : 'Submit'
-                : 'Next'}
+                  ? t('review.submitted')
+                  : t('buttons.submit')
+                : t('buttons.next')}
               {currentStep < applicationSteps.length - 1 && <ArrowRight size={14} className="sm:w-4 sm:h-4 ml-1.5" />}
             </Button>
           </div>

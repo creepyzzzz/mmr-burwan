@@ -1,0 +1,13 @@
+{
+  "title": "সাপোর্ট চ্যাট",
+  "back": "পিছনে",
+  "noMessages": "কোনও বার্তা নেই",
+  "startConversation": "কথোপকথন শুরু করুন!",
+  "selectConversation": "একটি কথোপকথন নির্বাচন করুন",
+  "chooseFromList": "শুরু করতে তালিকা থেকে বেছে নিন",
+  "typeMessage": "বার্তা টাইপ করুন...",
+  "messages": {
+    "loadFailed": "কথোপকথন লোড করতে ব্যর্থ হয়েছে",
+    "sendFailed": "বার্তা পাঠাতে ব্যর্থ হয়েছে"
+  }
+}

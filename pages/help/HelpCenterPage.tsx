@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -9,6 +10,7 @@ import { HelpCircle, MessageSquare, Mail, Phone, ChevronDown, ArrowLeft } from '
 const HelpCenterPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { t } = useTranslation('help');
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   useEffect(() => {
@@ -32,20 +34,20 @@ const HelpCenterPage: React.FC = () => {
 
   const faqs = [
     {
-      question: 'How do I start my marriage registration?',
-      answer: 'Sign up for an account, complete the onboarding process, and then start your application from the dashboard.',
+      question: t('faqs.startRegistration.question'),
+      answer: t('faqs.startRegistration.answer'),
     },
     {
-      question: 'What documents do I need?',
-      answer: 'You will need: National ID (front and back), passport-sized photos (2 copies), birth certificate, and previous marriage certificate if applicable.',
+      question: t('faqs.documents.question'),
+      answer: t('faqs.documents.answer'),
     },
     {
-      question: 'How long does the process take?',
-      answer: 'Typically, the registration process takes 7-14 business days after submission of all required documents.',
+      question: t('faqs.processTime.question'),
+      answer: t('faqs.processTime.answer'),
     },
     {
-      question: 'Can I reschedule my appointment?',
-      answer: 'Yes, you can reschedule your appointment from the Appointments page up to 24 hours before your scheduled time.',
+      question: t('faqs.reschedule.question'),
+      answer: t('faqs.reschedule.answer'),
     },
   ];
 

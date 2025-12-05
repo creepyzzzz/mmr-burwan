@@ -15,6 +15,7 @@ const BookAppointmentPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('appointments');
   const [slot, setSlot] = useState<AppointmentSlot | null>(null);
   const [isBooking, setIsBooking] = useState(false);
   const [appointment, setAppointment] = useState<any>(null);
@@ -121,15 +122,15 @@ const BookAppointmentPage: React.FC = () => {
           </div>
 
           <p className="text-[10px] sm:text-xs text-gray-500 mb-4 sm:mb-6">
-            Show this QR code at the registrar office.
+            {t('showQRCode')}
           </p>
 
           <div className="flex gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" className="flex-1 !text-xs sm:!text-sm" onClick={() => navigate('/appointments')}>
-              Back
+              {t('back')}
             </Button>
             <Button variant="primary" size="sm" className="flex-1 !text-xs sm:!text-sm" onClick={() => navigate('/pass')}>
-              View Pass
+              {t('viewPass')}
               <ArrowRight size={14} className="ml-1 sm:w-4 sm:h-4" />
             </Button>
           </div>
@@ -142,16 +143,16 @@ const BookAppointmentPage: React.FC = () => {
     <div className="max-w-2xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       <div className="mb-4 sm:mb-6">
         <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
-          {isRescheduling ? 'Reschedule' : 'Confirm Booking'}
+          {isRescheduling ? t('reschedule') : t('confirmBooking')}
         </h1>
         <p className="text-xs sm:text-sm text-gray-600">
-          {isRescheduling ? 'Review new details' : 'Review your appointment'}
-        </p>
+          {isRescheduling ? t('reviewNewDetails') : t('reviewAppointment')}
+</p>
       </div>
 
       <Card className="p-4 sm:p-6">
         <div className="mb-4 sm:mb-6">
-          <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">Details</h3>
+          <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">{t('details')}</h3>
           <div className="space-y-2 sm:space-y-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <Calendar size={16} className="sm:w-5 sm:h-5 text-gold-600" />
@@ -168,13 +169,13 @@ const BookAppointmentPage: React.FC = () => {
 
         <div className="bg-rose-50 border border-rose-200 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
           <p className="text-[10px] sm:text-xs text-rose-800">
-            <strong>Important:</strong> Arrive 15 mins early. Bring documents & ID.
+            <strong>{t('important')}:</strong> {t('importantNote')}
           </p>
         </div>
 
         <div className="flex gap-2 sm:gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')} className="flex-1 !text-xs sm:!text-sm">
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant="primary"
@@ -183,7 +184,7 @@ const BookAppointmentPage: React.FC = () => {
             isLoading={isBooking}
             className="flex-1 !text-xs sm:!text-sm"
           >
-            {isRescheduling ? 'Confirm' : 'Book'}
+            {isRescheduling ? t('confirm') : t('book')}
             <ArrowRight size={14} className="ml-1 sm:w-4 sm:h-4" />
           </Button>
         </div>

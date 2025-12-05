@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { messageService } from '../../services/messages';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Message, Conversation } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -16,6 +17,7 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('chat');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,7 +68,7 @@ const ChatPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to load conversations:', error);
-        showToast('Failed to load conversations', 'error');
+        showToast(t('messages.loadFailed'), 'error');
       } finally {
         setIsLoading(false);
       }
@@ -223,7 +225,7 @@ const ChatPage: React.FC = () => {
       }, 100);
     } catch (error: any) {
       console.error('Failed to send message:', error);
-      showToast(error.message || 'Failed to send message', 'error');
+      showToast(error.message || t('messages.sendFailed'), 'error');
       setMessageText(textToSend);
       
       // Add failed message to UI immediately
@@ -450,8 +452,8 @@ const ChatPage: React.FC = () => {
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-gold-100 to-rose-100 flex items-center justify-center mx-auto mb-3 sm:mb-4">
                           <MessageSquare size={28} className="sm:w-8 sm:h-8 text-gold-600" />
                         </div>
-                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">No messages</h3>
-                        <p className="text-xs sm:text-sm text-gray-500">Start the conversation!</p>
+                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">{t('noMessages')}</h3>
+                        <p className="text-xs sm:text-sm text-gray-500">{t('startConversation')}</p>
                       </div>
                     </div>
                   )}
@@ -463,7 +465,7 @@ const ChatPage: React.FC = () => {
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                      placeholder="Type message..."
+                      placeholder={t('typeMessage')}
                       className="flex-1"
                       disabled={!user || isSending}
                     />
@@ -479,8 +481,8 @@ const ChatPage: React.FC = () => {
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gold-100 to-rose-100 flex items-center justify-center mx-auto mb-4 sm:mb-5">
                     <MessageSquare size={32} className="sm:w-10 sm:h-10 text-gold-600" />
                   </div>
-                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2">Select a conversation</h3>
-                  <p className="text-xs sm:text-sm text-gray-500">Choose from the list to start</p>
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2">{t('selectConversation')}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">{t('chooseFromList')}</p>
                 </div>
               </div>
             )}

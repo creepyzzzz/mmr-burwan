@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { profileService } from '../../services/profile';
 import { applicationService } from '../../services/application';
 import { appointmentService } from '../../services/appointments';
@@ -19,6 +20,7 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('settings');
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -269,7 +271,7 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleChangePassword = () => {
-    showToast('Password change feature will be available soon', 'info');
+    showToast(t('messages.passwordChangeSoon'), 'info');
   };
 
   return (
@@ -283,11 +285,11 @@ const SettingsPage: React.FC = () => {
             className="flex-shrink-0 !px-2 sm:!px-3"
           >
             <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px] mr-1 sm:mr-2" />
-            <span className="text-xs sm:text-sm">Back</span>
+            <span className="text-xs sm:text-sm">{t('back')}</span>
           </Button>
         </div>
-        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Settings</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Manage your account settings</p>
+        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{t('title')}</h1>
+        <p className="text-xs sm:text-sm text-gray-600">{t('subtitle')}</p>
       </div>
 
       {isLoading ? (

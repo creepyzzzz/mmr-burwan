@@ -1,30 +1,32 @@
 import React from 'react';
 import { Globe, Clock, ShieldCheck, Smartphone } from 'lucide-react';
+import { useTranslation } from '../hooks/useTranslation';
+
+const Features: React.FC = () => {
+  const { t } = useTranslation('landing');
 
 const features = [
   {
     icon: <Globe className="w-6 h-6" />,
-    title: "Remote Access",
-    desc: "Apply for registration from anywhere, anytime without queuing."
+      title: t('features.remoteAccess.title'),
+      desc: t('features.remoteAccess.desc')
   },
   {
     icon: <Clock className="w-6 h-6" />,
-    title: "Fast Processing",
-    desc: "Digital verification speeds up the process to under 24 hours."
+      title: t('features.fastProcessing.title'),
+      desc: t('features.fastProcessing.desc')
   },
   {
     icon: <ShieldCheck className="w-6 h-6" />,
-    title: "Secure Data",
-    desc: "End-to-end encryption ensures your privacy is never compromised."
+      title: t('features.secureData.title'),
+      desc: t('features.secureData.desc')
   },
   {
     icon: <Smartphone className="w-6 h-6" />,
-    title: "Paperless",
-    desc: "Eco-friendly digital certificates accessible on your mobile."
+      title: t('features.paperless.title'),
+      desc: t('features.paperless.desc')
   }
 ];
-
-const Features: React.FC = () => {
   return (
     <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 bg-white relative overflow-hidden">
        {/* Soft blobs background */}
@@ -35,8 +37,8 @@ const Features: React.FC = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-3 sm:mb-4">Modernizing Tradition</h2>
-          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto px-2">We've streamlined the official Nikah registration process to be respectful, efficient, and accessible.</p>
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-3 sm:mb-4">{t('features.title')}</h2>
+          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto px-2">{t('features.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-8">

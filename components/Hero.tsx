@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, PlayCircle, Phone, FileText, Users, UserMinus, Search } from 'lucide-react';
 import ActionCard from './ActionCard';
 import VerifyDocumentModal from './VerifyDocumentModal';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('landing');
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   
   return (
@@ -27,24 +29,24 @@ const Hero: React.FC = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-gold-500"></span>
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-gray-600">Official Government Service</span>
+              <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-gray-600">{t('hero.badge')}</span>
             </div>
           </div>
           
           <h1 className="font-serif text-2xl sm:text-3xl lg:text-5xl leading-[1.15] sm:leading-[1.1] text-gray-900 mb-5 sm:mb-8 tracking-tight animate-fade-up" style={{ animationDelay: '0.2s' }}>
-            Digital marriage <br className="hidden sm:block" />
+            {t('hero.title')} <br className="hidden sm:block" />
             <span className="sm:hidden"> </span>
             <span className="relative inline-block">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-400 italic pr-1 sm:pr-2">
-                registration
+                {t('hero.titleHighlight')}
               </span>
               <span className="absolute bottom-1 sm:bottom-2 left-0 w-full h-2 sm:h-3 bg-gold-100/50 -z-0 transform -skew-x-12"></span>
             </span>
-            simplified.
+            {t('hero.titleEnd')}
           </h1>
           
           <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-6 sm:mb-10 max-w-lg leading-relaxed animate-fade-up" style={{ animationDelay: '0.3s' }}>
-            Apply from home. A respectful, secure, and modern approach to Nikah registration for the digital age.
+            {t('hero.description')}
           </p>
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto animate-fade-up" style={{ animationDelay: '0.4s' }}>
@@ -53,7 +55,7 @@ const Hero: React.FC = () => {
               className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-full overflow-hidden shadow-xl shadow-gray-900/20 hover:shadow-2xl hover:shadow-gold-500/20 transition-all duration-300 ease-out hover:-translate-y-1"
             >
               <span className="relative z-10 font-medium flex items-center justify-center gap-2 text-base sm:text-lg">
-                Get Started 
+                {t('hero.getStarted')} 
                 <ArrowRight size={18} className="sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-gold-600 to-gold-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -69,7 +71,7 @@ const Hero: React.FC = () => {
               className="group px-6 sm:px-8 py-3 sm:py-4 bg-white border border-white text-gray-700 rounded-full hover:bg-rose-50 hover:text-gold-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md hover:scale-105"
             >
               <PlayCircle size={18} className="sm:w-5 sm:h-5 text-gold-500 group-hover:text-gold-600" />
-              <span className="font-medium text-base sm:text-lg">How it works</span>
+              <span className="font-medium text-base sm:text-lg">{t('hero.howItWorks')}</span>
             </button>
           </div>
           
@@ -77,15 +79,15 @@ const Hero: React.FC = () => {
           <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-200/60 w-full flex items-center justify-between lg:justify-start lg:gap-16 animate-fade-up" style={{ animationDelay: '0.5s' }}>
               <div className="text-center sm:text-left">
                  <p className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-gray-900">12k+</p>
-                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">Registrations</p>
+                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">{t('hero.stats.registrations')}</p>
               </div>
               <div className="text-center sm:text-left">
                  <p className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-gray-900">100%</p>
-                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">Secure Data</p>
+                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">{t('hero.stats.secureData')}</p>
               </div>
               <div className="text-center sm:text-left">
                  <p className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-gray-900">24h</p>
-                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">Processing</p>
+                 <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 uppercase tracking-wider font-medium">{t('hero.stats.processing')}</p>
               </div>
           </div>
         </div>
@@ -99,8 +101,8 @@ const Hero: React.FC = () => {
              <div className="col-span-2 sm:col-span-3 transform transition-all duration-500 hover:z-10">
                 <ActionCard 
                    icon={<FileText size={24} className="sm:w-7 sm:h-7" />}
-                   title="Marriage Registration"
-                   subtitle="Login • Upload • Download Certificate"
+                   title={t('hero.actions.marriageRegistration')}
+                   subtitle={t('hero.actions.marriageSubtitle')}
                    active={true}
                    color="gold"
                    className="min-h-[100px] sm:min-h-[120px]"
@@ -112,8 +114,8 @@ const Hero: React.FC = () => {
              <div className="col-span-1 transform transition-all duration-500 hover:z-10">
                <ActionCard 
                    icon={<UserMinus size={20} className="sm:w-6 sm:h-6" />}
-                   title="Divorce Registration"
-                   subtitle="Talaq / Khula"
+                   title={t('hero.actions.divorceRegistration')}
+                   subtitle={t('hero.actions.divorceSubtitle')}
                    active={true}
                    color="indigo"
                    className="min-h-[110px] sm:min-h-[140px]"
@@ -125,8 +127,8 @@ const Hero: React.FC = () => {
              <div className="col-span-1 transform transition-all duration-500 hover:z-10">
                <ActionCard 
                    icon={<Phone size={20} className="sm:w-6 sm:h-6" />}
-                   title="Contact Support"
-                   subtitle="24/7 Helpline"
+                   title={t('hero.actions.contactSupport')}
+                   subtitle={t('hero.actions.contactSubtitle')}
                    active={true}
                    color="rose"
                    className="min-h-[110px] sm:min-h-[140px]"
@@ -138,8 +140,8 @@ const Hero: React.FC = () => {
              <div className="col-span-2 sm:col-span-1 transform transition-all duration-500 hover:z-10">
                <ActionCard 
                    icon={<Search size={20} className="sm:w-6 sm:h-6" />}
-                   title="Verify Certificate"
-                   subtitle="Check Validity"
+                   title={t('hero.actions.verifyCertificate')}
+                   subtitle={t('hero.actions.verifySubtitle')}
                    active={true}
                    color="indigo"
                    className="min-h-[100px] sm:min-h-[140px]"

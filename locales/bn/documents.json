@@ -1,0 +1,24 @@
+{
+  "title": "নথি আপলোড করুন",
+  "subtitle": "নিবন্ধনের জন্য প্রয়োজনীয় নথি আপলোড করুন",
+  "back": "পিছনে",
+  "upload": "আপলোড",
+  "remove": "মুছুন",
+  "preview": "পূর্বরূপ",
+  "download": "ডাউনলোড",
+  "required": "আবশ্যক",
+  "uploaded": "আপলোড করা হয়েছে",
+  "rejected": "প্রত্যাখ্যাত",
+  "pending": "অপেক্ষমান",
+  "approved": "অনুমোদিত",
+  "previewNotAvailable": "পূর্বরূপ উপলব্ধ নয়",
+  "downloadToView": "দেখতে ডাউনলোড করুন",
+  "failedToLoad": "পূর্বরূপ লোড করতে ব্যর্থ",
+  "openInNewTab": "নতুন ট্যাবে খুলুন",
+  "messages": {
+    "uploadSuccess": "নথি সফলভাবে আপলোড করা হয়েছে",
+    "uploadFailed": "নথি আপলোড করতে ব্যর্থ হয়েছে",
+    "removeSuccess": "নথি সফলভাবে মুছে ফেলা হয়েছে",
+    "removeFailed": "নথি মুছে ফেলতে ব্যর্থ হয়েছে"
+  }
+}

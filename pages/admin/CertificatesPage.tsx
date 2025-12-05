@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { certificateService } from '../../services/certificates';
+import { notificationService } from '../../services/notifications';
+import { adminService } from '../../services/admin';
+import { profileService } from '../../services/profile';
 import { useNotification } from '../../contexts/NotificationContext';
 import { Certificate } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { FileText, Download, Eye, Users, Calendar, Hash } from 'lucide-react';
+import { FileText, Download, Eye, Users, Calendar, Hash, Lock, Unlock } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
 
 const CertificatesPage: React.FC = () => {
@@ -51,6 +54,55 @@ const CertificatesPage: React.FC = () => {
       window.open(url, '_blank');
     } catch (error) {
       showToast('Failed to open certificate', 'error');
+    }
+  };
+
+  const handleToggleDownloadPermission = async (cert: Certificate) => {
+    try {
+      const newPermission = !cert.canDownload;
+      await certificateService.updateDownloadPermission(cert.id, newPermission);
+      
+      // Update local state
+      setCertificates(prevCerts =>
+        prevCerts.map(c =>
+          c.id === cert.id ? { ...c, canDownload: newPermission } : c
+        )
+      );
+      
+      // Send notification to user when download permission is enabled
+      if (newPermission) {
+        try {
+          // Get user profile to personalize notification
+          const profile = await profileService.getProfile(cert.userId);
+          const userName = profile 
+            ? `${profile.firstName} ${profile.lastName || ''}`.trim() || 'Applicant'
+            : 'Applicant';
+          
+          // Get certificate number for the notification
+          const certNumber = cert.certificateNumber || cert.verificationId;
+          
+          await notificationService.createNotification({
+            userId: cert.userId,
+            applicationId: cert.applicationId,
+            type: 'certificate_ready',
+            title: '🎉 Certificate Download Enabled!',
+            message: `Dear ${userName}, your certificate download permission has been enabled! Certificate Number: ${certNumber}. You can now download your marriage certificate from your dashboard.`,
+          });
+        } catch (notificationError: any) {
+          // Log error but don't fail the toggle - notification is not critical
+          console.error('Failed to send download enabled notification:', notificationError);
+        }
+      }
+      
+      showToast(
+        newPermission 
+          ? 'Download permission enabled for user' 
+          : 'Download permission disabled for user',
+        'success'
+      );
+    } catch (error) {
+      console.error('Failed to update download permission:', error);
+      showToast('Failed to update download permission', 'error');
     }
   };
 
@@ -143,6 +195,40 @@ const CertificatesPage: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 sm:ml-4">
+                    {/* Download Permission Toggle */}
+                    <div className="flex flex-col items-center gap-1 sm:gap-1.5">
+                      <button
+                        onClick={() => handleToggleDownloadPermission(cert)}
+                        className={`
+                          relative inline-flex h-6 w-11 sm:h-7 sm:w-12 items-center rounded-full transition-colors
+                          focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2
+                          ${cert.canDownload ? 'bg-gold-500' : 'bg-gray-300'}
+                        `}
+                        aria-label={cert.canDownload ? 'Disable download' : 'Enable download'}
+                        title={cert.canDownload ? 'User can download - Click to disable' : 'User cannot download - Click to enable'}
+                      >
+                        <span
+                          className={`
+                            inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white transition-transform
+                            ${cert.canDownload ? 'translate-x-6 sm:translate-x-7' : 'translate-x-1'}
+                          `}
+                        />
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {cert.canDownload ? (
+                          <>
+                            <Unlock size={10} className="sm:w-3 sm:h-3 text-gold-600" />
+                            <span className="text-[9px] sm:text-[10px] text-gold-600 font-medium">Enabled</span>
+                          </>
+                        ) : (
+                          <>
+                            <Lock size={10} className="sm:w-3 sm:h-3 text-gray-400" />
+                            <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium">Disabled</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
                     <Button
                       variant="ghost"
                       size="sm"

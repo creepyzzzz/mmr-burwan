@@ -1,0 +1,31 @@
+{
+  "title": "Book Appointment",
+  "subtitle": "Select an available time slot",
+  "back": "Back",
+  "reschedule": "Reschedule",
+  "confirmBooking": "Confirm Booking",
+  "reviewNewDetails": "Review new details",
+  "reviewAppointment": "Review your appointment",
+  "details": "Details",
+  "important": "Important",
+  "importantNote": "Arrive 15 mins early. Bring documents & ID.",
+  "cancel": "Cancel",
+  "book": "Book",
+  "confirm": "Confirm",
+  "viewPass": "View Pass",
+  "showQRCode": "Show this QR code at the registrar office.",
+  "noAvailableSlots": "No Available Slots",
+  "checkBackLater": "Check back later for new slots.",
+  "left": "{{count}} left",
+  "status": {
+    "confirmed": "confirmed",
+    "pending": "pending",
+    "cancelled": "cancelled"
+  },
+  "messages": {
+    "bookedSuccess": "Appointment booked successfully",
+    "rescheduledSuccess": "Appointment rescheduled successfully",
+    "bookFailed": "Failed to book appointment",
+    "rescheduleFailed": "Failed to reschedule appointment"
+  }
+}

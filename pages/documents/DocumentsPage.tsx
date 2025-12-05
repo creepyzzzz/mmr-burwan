@@ -5,6 +5,7 @@ import { applicationService } from '../../services/application';
 import { documentService } from '../../services/documents';
 import { notificationService } from '../../services/notifications';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Document, Application, Notification } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -16,6 +17,7 @@ const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useNotification();
+  const { t } = useTranslation('documents');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
@@ -437,11 +439,11 @@ const DocumentsPage: React.FC = () => {
             className="flex-shrink-0 !px-2 sm:!px-3"
           >
             <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px] mr-1 sm:mr-2" />
-            <span className="text-xs sm:text-sm">Back</span>
+            <span className="text-xs sm:text-sm">{t('back')}</span>
           </Button>
         </div>
-        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Upload Documents</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Upload required documents for registration</p>
+        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{t('title')}</h1>
+        <p className="text-xs sm:text-sm text-gray-600">{t('subtitle')}</p>
       </div>
 
       {/* Rejection Instructions with Individual Upload */}

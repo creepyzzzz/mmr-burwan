@@ -150,6 +150,7 @@ export interface Certificate {
   registrationDate?: string;
   groomName?: string;
   brideName?: string;
+  canDownload?: boolean; // Admin-controlled permission for user to download certificate
 }
 
 export interface AuditLog {

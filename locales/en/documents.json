@@ -1,0 +1,24 @@
+{
+  "title": "Upload Documents",
+  "subtitle": "Upload required documents for registration",
+  "back": "Back",
+  "upload": "Upload",
+  "remove": "Remove",
+  "preview": "Preview",
+  "download": "Download",
+  "required": "Required",
+  "uploaded": "Uploaded",
+  "rejected": "Rejected",
+  "pending": "Pending",
+  "approved": "Approved",
+  "previewNotAvailable": "Preview not available",
+  "downloadToView": "Download to View",
+  "failedToLoad": "Failed to load preview",
+  "openInNewTab": "Open in New Tab",
+  "messages": {
+    "uploadSuccess": "Document uploaded successfully",
+    "uploadFailed": "Failed to upload document",
+    "removeSuccess": "Document removed successfully",
+    "removeFailed": "Failed to remove document"
+  }
+}

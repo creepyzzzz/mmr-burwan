@@ -1,0 +1,74 @@
+{
+  "title": "Welcome, {{name}}!",
+  "subtitle": "Your registration progress",
+  "logout": "Logout",
+  "cards": {
+    "profile": {
+      "title": "Profile",
+      "complete": "{{percentage}}% complete",
+      "updateProfile": "Update Profile"
+    },
+    "application": {
+      "title": "Application",
+      "notStarted": "Not started",
+      "startApplication": "Start your application",
+      "viewApplication": "View Application",
+      "applicationSubmitted": "Application submitted",
+      "continue": "Continue",
+      "start": "Start Application",
+      "steps": {
+        "groom": "Groom Details",
+        "bride": "Bride Details",
+        "documents": "Documents",
+        "confirmation": "Confirmation",
+        "review": "Review"
+      }
+    },
+    "messages": {
+      "title": "Messages",
+      "unread": "{{count}} unread",
+      "noNewMessages": "No new messages",
+      "viewMessages": "View Messages"
+    },
+    "appointment": {
+      "title": "Appointment",
+      "dateTime": "Date & Time",
+      "viewPass": "View Pass",
+      "reschedule": "Reschedule",
+      "noAppointment": "No appointment scheduled",
+      "bookAppointment": "Book Appointment"
+    },
+    "certificate": {
+      "title": "Certificate",
+      "verified": "Verified",
+      "status": "Status",
+      "applicationVerified": "Application verified",
+      "verifiedOn": "Verified on {{date}}",
+      "certNumber": "Cert: {{number}}",
+      "view": "View",
+      "downloadPDF": "Download PDF",
+      "downloadDisabled": "Download permission is currently disabled. Please contact the administrator to enable certificate download.",
+      "beingPrepared": "Your certificate is being prepared. You will receive a notification when it's ready for download.",
+      "underReview": "Under review",
+      "pendingVerification": "Pending verification",
+      "noApplication": "No application",
+      "willBeAvailable": "Certificate will be available once verified.",
+      "completeAndSubmit": "Complete and submit to proceed.",
+      "startApplication": "Start your application first."
+    }
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "uploadDocs": "Upload Docs",
+    "bookAppt": "Book Appt",
+    "support": "Support",
+    "help": "Help"
+  },
+  "status": {
+    "submitted": "submitted",
+    "under_review": "under review",
+    "approved": "approved",
+    "confirmed": "confirmed",
+    "pending": "pending"
+  }
+}

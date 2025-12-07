@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { certificateService } from '../../services/certificates';
 import Card from '../../components/ui/Card';
@@ -49,10 +50,10 @@ const VerifyPage: React.FC = () => {
 
       setIsLoading(true);
       setError('');
-      
+
       try {
         const data = await certificateService.getCertificateByCertificateNumber(id);
-        
+
         if (data) {
           setCertificateData(data);
           setIsValid(true);
@@ -60,7 +61,7 @@ const VerifyPage: React.FC = () => {
           setIsValid(false);
           setError('Certificate not found. Please verify the certificate number and try again.');
         }
-        
+
         setHasSearched(true);
       } catch (err: any) {
         console.error('Failed to verify certificate:', err);
@@ -91,10 +92,10 @@ const VerifyPage: React.FC = () => {
     setIsLoading(true);
     setError('');
     setHasSearched(false);
-    
+
     try {
       const data = await certificateService.getCertificateByCertificateNumber(certificateNumber.trim());
-      
+
       if (data) {
         setCertificateData(data);
         setIsValid(true);
@@ -103,7 +104,7 @@ const VerifyPage: React.FC = () => {
         setIsValid(false);
         setError('Certificate not found. Please verify the certificate number and try again.');
       }
-      
+
       setHasSearched(true);
     } catch (err: any) {
       console.error('Failed to verify certificate:', err);
@@ -156,7 +157,7 @@ const VerifyPage: React.FC = () => {
               error={error}
               disabled={isLoading}
             />
-            
+
             {error && (
               <div className="p-2 sm:p-3 rounded-lg bg-rose-50 border border-rose-200">
                 <p className="text-xs sm:text-sm text-rose-600">{error}</p>
@@ -250,17 +251,30 @@ const VerifyPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Registration Date */}
-                <div className="bg-white rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-gray-200">
-                  <div className="flex items-center gap-1 sm:gap-1.5 mb-1">
-                    <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-gold-600" />
-                    <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wider font-medium">Registration Date</p>
+                {/* Marriage & Registration Dates */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="bg-white rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-gray-200">
+                    <div className="flex items-center gap-1 sm:gap-1.5 mb-1">
+                      <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-gold-600" />
+                      <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wider font-medium">Marriage</p>
+                    </div>
+                    <p className="font-semibold text-[11px] sm:text-xs text-gray-900">
+                      {certificateData.declarations?.marriageDate
+                        ? safeFormatDateObject(new Date(certificateData.declarations.marriageDate), 'MMM d, yyyy')
+                        : 'N/A'}
+                    </p>
                   </div>
-                  <p className="font-semibold text-[11px] sm:text-xs text-gray-900">
-                    {certificateData.registrationDate 
-                      ? safeFormatDateObject(new Date(certificateData.registrationDate), 'MMM d, yyyy')
-                      : 'N/A'}
-                  </p>
+                  <div className="bg-white rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-gray-200">
+                    <div className="flex items-center gap-1 sm:gap-1.5 mb-1">
+                      <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-gold-600" />
+                      <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wider font-medium">Registration</p>
+                    </div>
+                    <p className="font-semibold text-[11px] sm:text-xs text-gray-900">
+                      {certificateData.registrationDate
+                        ? safeFormatDateObject(new Date(certificateData.registrationDate), 'MMM d, yyyy')
+                        : 'N/A'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Registration Office Details */}

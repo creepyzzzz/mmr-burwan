@@ -13,7 +13,7 @@ import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
 import VerifyApplicationModal from '../../components/admin/VerifyApplicationModal';
 import RejectDocumentModal from '../../components/admin/RejectDocumentModal';
-import { ArrowLeft, FileText, CheckCircle, X, Eye, Edit2, Save, XCircle, Download } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, X, Eye, Edit2, Save, XCircle, Download, Copy, Check, Upload } from 'lucide-react';
 import { safeFormatDate } from '../../utils/dateUtils';
 
 const ApplicationDetailsPage: React.FC = () => {
@@ -33,9 +33,17 @@ const ApplicationDetailsPage: React.FC = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [reuploadingDoc, setReuploadingDoc] = useState<string | null>(null);
+  const reuploadFileInputsRef = React.useRef<Map<string, HTMLInputElement>>(new Map());
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>({});
+
+  // Check if current admin created this application
+  const isAdminCreatedApplication = user?.role === 'admin' && application?.isProxyApplication === true && application?.createdByAdminId === user?.id;
 
   useEffect(() => {
     const loadData = async () => {
@@ -95,6 +103,45 @@ const ApplicationDetailsPage: React.FC = () => {
   const handleRejectDocument = (document: Document) => {
     setSelectedDocument(document);
     setRejectModalOpen(true);
+  };
+
+  const handleReuploadDocument = async (documentId: string, file: File) => {
+    if (!application) return;
+    
+    setReuploadingDoc(documentId);
+    try {
+      // Use uploadDocument which will update existing document if it exists
+      await documentService.uploadDocument(application.id, file, 
+        documents.find(d => d.id === documentId)?.type || 'aadhaar',
+        documents.find(d => d.id === documentId)?.belongsTo || 'user'
+      );
+      
+      // Refresh documents list
+      const updated = await documentService.getDocuments(application.id);
+      setDocuments(updated);
+      showToast('Document re-uploaded successfully', 'success');
+    } catch (error: any) {
+      console.error('Failed to re-upload document:', error);
+      showToast(error.message || 'Failed to re-upload document', 'error');
+    } finally {
+      setReuploadingDoc(null);
+    }
+  };
+
+  const handleReuploadFileSelect = (documentId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (500KB limit)
+      const MAX_FILE_SIZE = 500 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        showToast('File size exceeds 500KB limit. Please compress or resize the file before uploading.', 'error');
+        event.target.value = '';
+        return;
+      }
+      handleReuploadDocument(documentId, file);
+    }
+    // Reset input
+    event.target.value = '';
   };
 
   const handleConfirmReject = async (reason: string, sendEmail: boolean) => {
@@ -245,8 +292,18 @@ const ApplicationDetailsPage: React.FC = () => {
         </Button>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Application Details</h1>
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">Application Details</h1>
+              {application.isProxyApplication && (
+                <Badge variant="info" className="!text-[10px] sm:!text-xs">
+                  Admin-Created
+                </Badge>
+              )}
+            </div>
             <p className="text-xs sm:text-sm text-gray-600 truncate">Application ID: {application.id}</p>
+            {application.isProxyApplication && application.proxyUserEmail && (
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Proxy User: {application.proxyUserEmail}</p>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {!isEditing ? (
@@ -344,6 +401,84 @@ const ApplicationDetailsPage: React.FC = () => {
       </div>
 
       <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        {/* Proxy Application Info */}
+        {application.isProxyApplication && (
+          <Card className="p-3 sm:p-4 lg:p-6 bg-blue-50 border-blue-200">
+            <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3">Admin-Created Application</h3>
+            <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+              {application.offlineApplicantContact && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                  {application.offlineApplicantContact.phone && (
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5">Contact Phone</p>
+                      <p className="font-medium text-gray-900">{application.offlineApplicantContact.phone}</p>
+                    </div>
+                  )}
+                  {application.offlineApplicantContact.address && (
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5">Contact Address</p>
+                      <p className="font-medium text-gray-900">{application.offlineApplicantContact.address}</p>
+                    </div>
+                  )}
+                  {application.offlineApplicantContact.contactPerson && (
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5">Contact Person</p>
+                      <p className="font-medium text-gray-900">{application.offlineApplicantContact.contactPerson}</p>
+                    </div>
+                  )}
+                  {application.offlineApplicantContact.notes && (
+                    <div className="sm:col-span-2">
+                      <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5">Notes</p>
+                      <p className="font-medium text-gray-900">{application.offlineApplicantContact.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {application.proxyUserEmail && (
+                <div className="pt-2 border-t border-blue-200">
+                  <p className="text-[10px] sm:text-xs text-gray-500 mb-1">Proxy User Account</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-2 py-1 bg-white rounded text-[10px] sm:text-xs font-mono text-gray-900 break-all">
+                      {application.proxyUserEmail}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          // Fetch credentials from database - RLS policy allows admins to view
+                          const { data, error } = await supabase
+                            .from('proxy_user_credentials')
+                            .select('email, password')
+                            .eq('application_id', application.id)
+                            .single();
+
+                          if (error || !data) {
+                            console.error('Credentials fetch error:', error);
+                            showToast('Credentials not found or you do not have permission to view them', 'error');
+                            return;
+                          }
+
+                          // Show credentials in modal
+                          setCredentials({ email: data.email, password: data.password });
+                          setShowCredentialsModal(true);
+                        } catch (error: any) {
+                          console.error('Failed to fetch credentials:', error);
+                          showToast('Failed to fetch credentials', 'error');
+                        }
+                      }}
+                      className="!text-[10px] sm:!text-xs !px-2"
+                    >
+                      <Eye size={12} className="sm:w-4 sm:h-4 mr-1" />
+                      View Credentials
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
         {/* Groom Personal Details */}
         <Card className="p-3 sm:p-4 lg:p-6">
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Personal Details</h3>
@@ -980,6 +1115,43 @@ const ApplicationDetailsPage: React.FC = () => {
                         >
                           <Eye size={12} className="sm:w-4 sm:h-4" />
                         </Button>
+                        {isAdminCreatedApplication && (
+                          <>
+                            <input
+                              type="file"
+                              accept={doc.type === 'photo' ? 'image/*' : 'image/*,.pdf'}
+                              onChange={(e) => handleReuploadFileSelect(doc.id, e)}
+                              className="hidden"
+                              id={`reupload-user-${doc.id}`}
+                              ref={(el) => {
+                                if (el) {
+                                  reuploadFileInputsRef.current.set(doc.id, el);
+                                } else {
+                                  reuploadFileInputsRef.current.delete(doc.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                const input = reuploadFileInputsRef.current.get(doc.id);
+                                if (input) {
+                                  input.click();
+                                }
+                              }}
+                              disabled={reuploadingDoc === doc.id || isProcessingDoc === doc.id}
+                              title="Re-upload"
+                            >
+                              {reuploadingDoc === doc.id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-blue-600"></div>
+                              ) : (
+                                <Upload size={12} className="sm:w-4 sm:h-4" />
+                              )}
+                            </Button>
+                          </>
+                        )}
                         {doc.status === 'pending' && (
                           <>
                             <Button
@@ -987,7 +1159,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
                               onClick={() => handleApproveDocument(doc.id)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Approve"
                             >
                               <CheckCircle size={12} className="sm:w-4 sm:h-4" />
@@ -997,7 +1169,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleRejectDocument(doc)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Reject"
                             >
                               <XCircle size={12} className="sm:w-4 sm:h-4" />
@@ -1066,6 +1238,43 @@ const ApplicationDetailsPage: React.FC = () => {
                         >
                           <Eye size={12} className="sm:w-4 sm:h-4" />
                         </Button>
+                        {isAdminCreatedApplication && (
+                          <>
+                            <input
+                              type="file"
+                              accept={doc.type === 'photo' ? 'image/*' : 'image/*,.pdf'}
+                              onChange={(e) => handleReuploadFileSelect(doc.id, e)}
+                              className="hidden"
+                              id={`reupload-partner-${doc.id}`}
+                              ref={(el) => {
+                                if (el) {
+                                  reuploadFileInputsRef.current.set(doc.id, el);
+                                } else {
+                                  reuploadFileInputsRef.current.delete(doc.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                const input = reuploadFileInputsRef.current.get(doc.id);
+                                if (input) {
+                                  input.click();
+                                }
+                              }}
+                              disabled={reuploadingDoc === doc.id || isProcessingDoc === doc.id}
+                              title="Re-upload"
+                            >
+                              {reuploadingDoc === doc.id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-blue-600"></div>
+                              ) : (
+                                <Upload size={12} className="sm:w-4 sm:h-4" />
+                              )}
+                            </Button>
+                          </>
+                        )}
                         {doc.status === 'pending' && (
                           <>
                             <Button
@@ -1073,7 +1282,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
                               onClick={() => handleApproveDocument(doc.id)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Approve"
                             >
                               <CheckCircle size={12} className="sm:w-4 sm:h-4" />
@@ -1083,7 +1292,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleRejectDocument(doc)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Reject"
                             >
                               <XCircle size={12} className="sm:w-4 sm:h-4" />
@@ -1152,6 +1361,43 @@ const ApplicationDetailsPage: React.FC = () => {
                         >
                           <Eye size={12} className="sm:w-4 sm:h-4" />
                         </Button>
+                        {isAdminCreatedApplication && (
+                          <>
+                            <input
+                              type="file"
+                              accept={doc.type === 'photo' ? 'image/*' : 'image/*,.pdf'}
+                              onChange={(e) => handleReuploadFileSelect(doc.id, e)}
+                              className="hidden"
+                              id={`reupload-joint-${doc.id}`}
+                              ref={(el) => {
+                                if (el) {
+                                  reuploadFileInputsRef.current.set(doc.id, el);
+                                } else {
+                                  reuploadFileInputsRef.current.delete(doc.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                const input = reuploadFileInputsRef.current.get(doc.id);
+                                if (input) {
+                                  input.click();
+                                }
+                              }}
+                              disabled={reuploadingDoc === doc.id || isProcessingDoc === doc.id}
+                              title="Re-upload"
+                            >
+                              {reuploadingDoc === doc.id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-blue-600"></div>
+                              ) : (
+                                <Upload size={12} className="sm:w-4 sm:h-4" />
+                              )}
+                            </Button>
+                          </>
+                        )}
                         {doc.status === 'pending' && (
                           <>
                             <Button
@@ -1159,7 +1405,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
                               onClick={() => handleApproveDocument(doc.id)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Approve"
                             >
                               <CheckCircle size={12} className="sm:w-4 sm:h-4" />
@@ -1169,7 +1415,7 @@ const ApplicationDetailsPage: React.FC = () => {
                               size="sm"
                               className="!p-1 sm:!p-1.5 !text-[10px] sm:!text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleRejectDocument(doc)}
-                              disabled={isProcessingDoc === doc.id}
+                              disabled={isProcessingDoc === doc.id || reuploadingDoc === doc.id}
                               title="Reject"
                             >
                               <XCircle size={12} className="sm:w-4 sm:h-4" />
@@ -1435,6 +1681,114 @@ const ApplicationDetailsPage: React.FC = () => {
           documentType={selectedDocument.type}
           userEmail={userEmail}
         />
+      )}
+
+      {/* Credentials Modal */}
+      {showCredentialsModal && credentials && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          onClick={() => setShowCredentialsModal(false)}
+        >
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative z-10 w-full max-w-md sm:max-w-lg my-auto bg-white rounded-xl sm:rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
+              <h2 className="font-serif text-base sm:text-lg font-semibold text-gray-900">
+                Application Credentials
+              </h2>
+              <button
+                onClick={() => {
+                  setShowCredentialsModal(false);
+                  setCredentials(null);
+                }}
+                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Close modal"
+              >
+                <X size={18} className="sm:w-5 sm:h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:p-6">
+              <p className="text-center text-gray-600 text-xs sm:text-sm mb-4">
+                Please copy these credentials securely and share them with the applicant.
+              </p>
+              <Card className="p-4 sm:p-5 mb-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] sm:text-xs text-gray-500 mb-1 block">Email</label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-50 rounded text-[10px] sm:text-xs font-mono text-gray-900 break-all">
+                        {credentials.email}
+                      </code>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(credentials.email);
+                            setCopiedField('email');
+                            showToast('Email copied to clipboard', 'success');
+                            setTimeout(() => setCopiedField(null), 2000);
+                          } catch (error) {
+                            showToast('Failed to copy email', 'error');
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-gold-600 hover:bg-gold-50 rounded transition-colors"
+                        title="Copy Email"
+                      >
+                        {copiedField === 'email' ? (
+                          <Check size={14} className="sm:w-4 sm:h-4 text-green-600" />
+                        ) : (
+                          <Copy size={14} className="sm:w-4 sm:h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] sm:text-xs text-gray-500 mb-1 block">Password</label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-50 rounded text-[10px] sm:text-xs font-mono text-gray-900 break-all">
+                        {credentials.password}
+                      </code>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(credentials.password);
+                            setCopiedField('password');
+                            showToast('Password copied to clipboard', 'success');
+                            setTimeout(() => setCopiedField(null), 2000);
+                          } catch (error) {
+                            showToast('Failed to copy password', 'error');
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-gold-600 hover:bg-gold-50 rounded transition-colors"
+                        title="Copy Password"
+                      >
+                        {copiedField === 'password' ? (
+                          <Check size={14} className="sm:w-4 sm:h-4 text-green-600" />
+                        ) : (
+                          <Copy size={14} className="sm:w-4 sm:h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <div className="flex justify-center">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setShowCredentialsModal(false);
+                    setCredentials(null);
+                  }}
+                  className="text-xs sm:text-sm"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

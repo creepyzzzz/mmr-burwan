@@ -26,6 +26,7 @@ const PassPage = lazy(() => import('./pages/pass/PassPage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
 const ClientsPage = lazy(() => import('./pages/admin/ClientsPage'));
 const ApplicationDetailsPage = lazy(() => import('./pages/admin/ApplicationDetailsPage'));
+const CreateApplicationPage = lazy(() => import('./pages/admin/CreateApplicationPage'));
 const AppointmentsAdminPage = lazy(() => import('./pages/admin/AppointmentsAdminPage'));
 const ScannerPage = lazy(() => import('./pages/admin/ScannerPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
@@ -227,6 +228,14 @@ const router = createBrowserRouter(
           element: (
             <Suspense fallback={<LoadingSpinner />}>
               <AdminDashboardPage />
+            </Suspense>
+          ),
+        },
+        {
+          path: 'create-application',
+          element: (
+            <Suspense fallback={<LoadingSpinner />}>
+              <CreateApplicationPage />
             </Suspense>
           ),
         },

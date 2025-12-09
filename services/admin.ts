@@ -547,4 +547,244 @@ export const adminService = {
 
     return emailMap;
   },
+
+  async createApplicationForOfflineUser(
+    applicantData: {
+      email: string;
+      password: string;
+    },
+    applicationData: {
+      userDetails: any;
+      partnerForm: any;
+      userAddress: any;
+      userCurrentAddress: any;
+      partnerAddress: any;
+      partnerCurrentAddress: any;
+      declarations: Record<string, boolean | string>;
+    },
+    adminId: string,
+    adminName: string
+  ): Promise<{ application: Application; credentials: { email: string; password: string } }> {
+    try {
+      // Step 1: Call edge function to create user account
+      // Ensure we have a valid session before calling the function
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      // Use fetch directly to have better control over error handling
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const functionUrl = `${supabaseUrl}/functions/v1/create-proxy-user`;
+      
+      let functionData: any = null;
+      
+      try {
+        const response = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+          },
+          body: JSON.stringify({
+            email: applicantData.email,
+            password: applicantData.password,
+            adminId: adminId,
+            adminName: adminName,
+          }),
+        });
+
+        // Parse response body
+        const responseText = await response.text();
+        try {
+          functionData = JSON.parse(responseText);
+        } catch (parseErr) {
+          // If response is not JSON, treat it as error
+          throw new Error(responseText || 'Failed to create user account');
+        }
+
+        // Check if response indicates an error
+        if (!response.ok) {
+          const errorMessage = functionData?.error || functionData?.message || 'Failed to create user account';
+          const errorCode = functionData?.code || '';
+          
+          console.error('Edge function returned error:', {
+            status: response.status,
+            error: errorMessage,
+            code: errorCode,
+            fullResponse: functionData,
+          });
+          
+          // Check if it's a user already exists error (409 Conflict)
+          if (response.status === 409 || 
+              errorCode === 'USER_ALREADY_EXISTS' || 
+              errorMessage.toLowerCase().includes('already exists') ||
+              errorMessage.toLowerCase().includes('already registered') ||
+              errorMessage.toLowerCase().includes('email address is already')) {
+            throw new Error('A user with this email address already exists. Please use a different email.');
+          }
+          
+          throw new Error(errorMessage);
+        }
+
+        // Verify success response
+        if (!functionData || !functionData.success) {
+          const errorMessage = functionData?.error || functionData?.message || 'Failed to create user account';
+          const errorCode = functionData?.code || '';
+          
+          // Check if it's a user already exists error
+          if (errorCode === 'USER_ALREADY_EXISTS' || 
+              errorMessage.toLowerCase().includes('already exists') ||
+              errorMessage.toLowerCase().includes('already registered')) {
+            throw new Error('A user with this email address already exists. Please use a different email.');
+          }
+          
+          throw new Error(errorMessage);
+        }
+      } catch (fetchError: any) {
+        console.error('Error calling edge function:', fetchError);
+        
+        // If it's already our custom error, re-throw it
+        if (fetchError.message && (
+          fetchError.message.includes('already exists') ||
+          fetchError.message.includes('already registered')
+        )) {
+          throw fetchError;
+        }
+        
+        // Otherwise, wrap it in a user-friendly message
+        throw new Error(fetchError.message || 'Failed to create user account. Please try again.');
+      }
+
+      const { userId, email: userEmail, password } = functionData;
+
+      // Step 2: Create application draft with proxy flags
+      const { data: appData, error: appError } = await supabase
+        .from('applications')
+        .insert({
+          user_id: userId,
+          status: 'draft',
+          progress: 0,
+          created_by_admin_id: adminId,
+          is_proxy_application: true,
+          offline_applicant_contact: {},
+          proxy_user_email: userEmail,
+        })
+        .select()
+        .single();
+
+      if (appError) {
+        throw new Error(`Failed to create application: ${appError.message}`);
+      }
+
+      // Step 3: Update application with all form data
+      const updatedData: any = {
+        user_details: applicationData.userDetails,
+        partner_form: applicationData.partnerForm,
+        user_address: applicationData.userAddress,
+        user_current_address: applicationData.userCurrentAddress,
+        partner_address: applicationData.partnerAddress,
+        partner_current_address: applicationData.partnerCurrentAddress,
+        declarations: applicationData.declarations,
+      };
+
+      // Calculate progress based on actual data filled
+      let progress = 0;
+      
+      // Check if user details are actually filled (not just empty object)
+      const hasUserDetails = updatedData.user_details && 
+        updatedData.user_details.firstName &&
+        updatedData.user_details.dateOfBirth &&
+        updatedData.user_details.aadhaarNumber &&
+        updatedData.user_details.mobileNumber;
+      if (hasUserDetails) progress += 20;
+      
+      // Check if partner details are actually filled
+      const hasPartnerDetails = updatedData.partner_form && 
+        updatedData.partner_form.firstName &&
+        updatedData.partner_form.dateOfBirth &&
+        (updatedData.partner_form.aadhaarNumber || updatedData.partner_form.idNumber);
+      if (hasPartnerDetails) progress += 20;
+      
+      // Check if addresses are actually filled
+      const hasUserAddress = updatedData.user_address && 
+        ((updatedData.user_address as any)?.villageStreet || updatedData.user_address?.street) &&
+        updatedData.user_address?.state;
+      const hasPartnerAddress = updatedData.partner_address && 
+        ((updatedData.partner_address as any)?.villageStreet || updatedData.partner_address?.street) &&
+        updatedData.partner_address?.state;
+      if (hasUserAddress || hasPartnerAddress) progress += 20;
+      
+      // Check if declarations are actually filled (not just empty object)
+      const hasDeclarations = updatedData.declarations && 
+        (updatedData.declarations.consent === true || updatedData.declarations.consent === false) &&
+        (updatedData.declarations.accuracy === true || updatedData.declarations.accuracy === false) &&
+        (updatedData.declarations.legal === true || updatedData.declarations.legal === false);
+      if (hasDeclarations) progress += 20;
+      
+      // Documents will add remaining 20% (checked separately when documents are uploaded)
+      updatedData.progress = Math.min(progress, 80);
+
+      updatedData.last_updated = new Date().toISOString();
+
+      const { data: updatedAppData, error: updateError } = await supabase
+        .from('applications')
+        .update(updatedData)
+        .eq('id', appData.id)
+        .select(`
+          *,
+          documents (*)
+        `)
+        .single();
+
+      if (updateError) {
+        throw new Error(`Failed to update application: ${updateError.message}`);
+      }
+
+      // Step 4: Store credentials in proxy_user_credentials table
+      const { error: credError } = await supabase
+        .from('proxy_user_credentials')
+        .insert({
+          user_id: userId,
+          application_id: appData.id,
+          email: userEmail,
+          password: password, // Store password (consider encryption in production)
+          created_by_admin_id: adminId,
+        });
+
+      if (credError) {
+        console.error('Failed to store credentials:', credError);
+        // Don't fail the whole operation if credential storage fails
+        // The credentials are already returned, so admin can note them down
+      }
+
+      // Step 5: Create audit log entry
+      await auditService.createLog({
+        actorId: adminId,
+        actorName: adminName,
+        actorRole: 'admin',
+        action: 'proxy_application_created',
+        resourceType: 'application',
+        resourceId: appData.id,
+        details: {
+          proxyUserEmail: userEmail,
+          isProxyApplication: true,
+        },
+      });
+
+      // Step 6: Return application and credentials
+      return {
+        application: applicationService.mapApplication(updatedAppData),
+        credentials: {
+          email: userEmail,
+          password: password,
+        },
+      };
+    } catch (error: any) {
+      console.error('Error creating proxy application:', error);
+      throw error;
+    }
+  },
 };

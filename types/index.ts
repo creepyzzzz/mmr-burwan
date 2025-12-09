@@ -34,6 +34,7 @@ export interface PartnerDetails {
   idNumber: string;
   aadhaarNumber?: string;
   mobileNumber?: string;
+  email?: string; // Bride's email address
   address: Address;
 }
 
@@ -80,6 +81,16 @@ export interface Application {
   registrationDate?: string; // Registration date set by admin during verification
   submittedAt?: string;
   lastUpdated: string;
+  // Proxy application fields
+  createdByAdminId?: string;
+  isProxyApplication?: boolean;
+  offlineApplicantContact?: {
+    phone?: string;
+    address?: string;
+    notes?: string;
+    contactPerson?: string;
+  };
+  proxyUserEmail?: string;
 }
 
 export interface Document {

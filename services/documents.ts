@@ -58,6 +58,7 @@ export const documentService = {
       const documentUrl = urlData.publicUrl;
 
       // Update existing document record
+      // Reset status to 'pending' and mark as re-uploaded when updating
       const { data, error } = await supabase
         .from('documents')
         .update({
@@ -67,6 +68,8 @@ export const documentService = {
           size: file.size,
           mime_type: file.type,
           uploaded_at: new Date().toISOString(),
+          status: 'pending', // Reset status to pending when re-uploaded
+          is_reuploaded: true, // Mark as re-uploaded
         })
         .eq('id', existingDoc.id)
         .select()
@@ -88,7 +91,7 @@ export const documentService = {
         size: data.size,
         mimeType: data.mime_type,
         belongsTo: data.belongs_to,
-        isReuploaded: false,
+        isReuploaded: data.is_reuploaded || false,
       };
     }
 

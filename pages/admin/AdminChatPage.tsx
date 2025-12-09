@@ -12,6 +12,7 @@ import Badge from '../../components/ui/Badge';
 import { MessageSquare, Send, Check, CheckCheck, Clock, Search, User, ArrowLeft } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { useDebounce } from '../../hooks/useDebounce';
 
 type ConversationWithUser = Conversation & { userName?: string; userEmail?: string };
 
@@ -28,6 +29,7 @@ const AdminChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageChannelRef = useRef<RealtimeChannel | null>(null);
   const conversationChannelRef = useRef<RealtimeChannel | null>(null);
@@ -114,18 +116,18 @@ const AdminChatPage: React.FC = () => {
 
   // Filter conversations based on search
   useEffect(() => {
-    if (!searchTerm.trim()) {
+    if (!debouncedSearchTerm.trim()) {
       setFilteredConversations(conversations);
       return;
     }
 
     const filtered = conversations.filter((conv) =>
-      conv.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.lastMessage?.content.toLowerCase().includes(searchTerm.toLowerCase())
+      conv.userName?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      conv.userEmail?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      conv.lastMessage?.content.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
     setFilteredConversations(filtered);
-  }, [searchTerm, conversations]);
+  }, [debouncedSearchTerm, conversations]);
 
   // Load messages and subscribe to realtime updates
   useEffect(() => {

@@ -8,15 +8,17 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
-import { Users, FileText, CheckCircle, XCircle, Search } from 'lucide-react';
+import { Users, FileText, CheckCircle, XCircle, Search, UserPlus } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [verifiedFilter, setVerifiedFilter] = useState<string>('all'); // 'all', 'verified', 'unverified', 'draft'
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,18 +40,29 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     let filtered = applications;
 
-    if (searchTerm) {
+    if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
       filtered = filtered.filter((app) =>
-        app.id.toLowerCase().includes(searchTerm.toLowerCase())
+        app.id.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())
       );
     }
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((app) => app.status === statusFilter);
+    // Apply verified filter
+    if (verifiedFilter !== 'all') {
+      if (verifiedFilter === 'verified') {
+        filtered = filtered.filter((app) => app.verified === true);
+      } else if (verifiedFilter === 'unverified') {
+        // Show only submitted applications that are not verified (exclude draft)
+        filtered = filtered.filter((app) => 
+          (app.status === 'submitted' || app.status === 'under_review') &&
+          (app.verified === false || app.verified === undefined)
+        );
+      } else if (verifiedFilter === 'draft') {
+        filtered = filtered.filter((app) => app.status === 'draft');
+      }
     }
 
     setFilteredApplications(filtered);
-  }, [searchTerm, statusFilter, applications]);
+  }, [debouncedSearchTerm, verifiedFilter, applications]);
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
@@ -73,12 +86,29 @@ const AdminDashboardPage: React.FC = () => {
   return (
     <div>
       <div className="mb-4 sm:mb-6 lg:mb-8">
-        <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Admin Dashboard</h1>
-        <p className="text-xs sm:text-sm text-gray-600">Manage marriage registration applications</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div>
+            <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm text-gray-600">Manage marriage registration applications</p>
+          </div>
+          <Button
+            onClick={() => navigate('/admin/create-application')}
+            className="w-full sm:w-auto"
+          >
+            <UserPlus size={16} className="mr-2" />
+            Create Application for Offline User
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
-        <Card className="p-3 sm:p-4 lg:p-6">
+        <Card 
+          className="p-3 sm:p-4 lg:p-6 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+          onClick={() => {
+            setVerifiedFilter('all');
+            setSearchTerm('');
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Total Applications</p>
@@ -87,7 +117,13 @@ const AdminDashboardPage: React.FC = () => {
             <FileText size={20} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-gold-600 flex-shrink-0" />
           </div>
         </Card>
-        <Card className="p-3 sm:p-4 lg:p-6">
+        <Card 
+          className="p-3 sm:p-4 lg:p-6 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+          onClick={() => {
+            setVerifiedFilter('all');
+            setSearchTerm('');
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Pending Review</p>
@@ -98,23 +134,37 @@ const AdminDashboardPage: React.FC = () => {
             <Users size={20} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-600 flex-shrink-0" />
           </div>
         </Card>
-        <Card className="p-3 sm:p-4 lg:p-6">
+        <Card 
+          className="p-3 sm:p-4 lg:p-6 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+          onClick={() => {
+            setVerifiedFilter('verified');
+            setStatusFilter('all');
+            setSearchTerm('');
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Approved</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Verified</p>
               <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">
-                {applications.filter((a) => a.status === 'approved').length}
+                {applications.filter((a) => a.verified === true).length}
               </p>
             </div>
             <CheckCircle size={20} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-green-600 flex-shrink-0" />
           </div>
         </Card>
-        <Card className="p-3 sm:p-4 lg:p-6">
+        <Card 
+          className="p-3 sm:p-4 lg:p-6 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+          onClick={() => {
+            setVerifiedFilter('unverified');
+            setStatusFilter('all');
+            setSearchTerm('');
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Rejected</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Unverified</p>
               <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">
-                {applications.filter((a) => a.status === 'rejected').length}
+                {applications.filter((a) => a.verified === false || a.verified === undefined).length}
               </p>
             </div>
             <XCircle size={20} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-rose-600 flex-shrink-0" />
@@ -133,16 +183,14 @@ const AdminDashboardPage: React.FC = () => {
             />
           </div>
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={verifiedFilter}
+            onChange={(e) => setVerifiedFilter(e.target.value)}
             className="px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl border border-gray-200 focus:border-gold-500 focus:ring-2 focus:ring-gold-500 focus:outline-none text-xs sm:text-sm w-full sm:w-auto"
           >
-            <option value="all">All Status</option>
+            <option value="all">All Verification</option>
+            <option value="verified">Verified</option>
+            <option value="unverified">Unverified</option>
             <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="under_review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
           </select>
         </div>
 

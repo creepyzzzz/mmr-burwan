@@ -294,14 +294,10 @@ const ApplicationFormContent: React.FC = () => {
   }, [application, isLoading]);
 
   // Load documents when application loads or when on documents/review step
-  // Only reload if we don't already have documents loaded to avoid clearing unsaved documents
   useEffect(() => {
     if (application && (currentStep === 2 || currentStep === 4)) {
       const loadDocuments = async () => {
-        // Only show loading if we don't have any documents loaded yet
-        if (applicationDocuments.length === 0) {
-          setIsLoadingDocuments(true);
-        }
+        setIsLoadingDocuments(true);
         try {
           const docs = await documentService.getDocuments(application.id);
           setApplicationDocuments(docs);
@@ -735,15 +731,13 @@ const ApplicationFormContent: React.FC = () => {
         if (application) {
           // Only upload documents that haven't been saved yet
           if (documents.length > 0) {
-            const uploadedDocs: string[] = [];
             for (const doc of documents) {
               await documentService.uploadDocument(application.id, doc.file, doc.type, doc.belongsTo);
-              uploadedDocs.push(doc.id);
             }
             showToast('Documents uploaded successfully!', 'success');
             
-            // Only clear documents that were successfully uploaded
-            setDocuments(prevDocs => prevDocs.filter(doc => !uploadedDocs.includes(doc.id)));
+            // Clear local documents state after successful upload to prevent re-uploads
+            setDocuments([]);
             
             // Reload documents from database to ensure state is in sync
             const updatedDocs = await documentService.getDocuments(application.id);
@@ -2585,17 +2579,14 @@ const ApplicationFormContent: React.FC = () => {
         // Documents step - upload any documents that haven't been saved yet
         if (application && documents.length > 0) {
           try {
-            const uploadedDocs: string[] = [];
             // Upload all documents that are in the documents array (unsaved ones)
             for (const doc of documents) {
               await documentService.uploadDocument(application.id, doc.file, doc.type, doc.belongsTo);
-              uploadedDocs.push(doc.id);
             }
-            // Only clear documents that were successfully uploaded
-            setDocuments(prevDocs => prevDocs.filter(doc => !uploadedDocs.includes(doc.id)));
-            // Reload documents from database to update applicationDocuments state
-            const updatedDocs = await documentService.getDocuments(application.id);
-            setApplicationDocuments(updatedDocs);
+            // Clear the documents array after successful upload
+            setDocuments([]);
+            // Refresh application to get updated documents list
+            await refreshApplication();
             showToast('Draft saved. Documents uploaded successfully.', 'success');
           } catch (error: any) {
             console.error('Failed to upload documents:', error);
@@ -2858,7 +2849,7 @@ const ApplicationFormContent: React.FC = () => {
               className="!text-xs sm:!text-sm flex-1 sm:flex-initial"
             >
               <Save size={14} className="sm:w-4 sm:h-4 mr-1.5" />
-              {t('buttons.save')}
+              <span className="hidden sm:inline">{t('buttons.save')}</span> {t('common:buttons.save')}
             </Button>
             <Button
               variant="primary"
@@ -2891,22 +2882,3 @@ const ApplicationFormContent: React.FC = () => {
     </>
   );
 };
-
-const ApplicationPage: React.FC = () => {
-  const { user } = useAuth();
-  
-  if (!user) {
-    return null;
-  }
-
-  return (
-    <ApplicationProvider userId={user.id}>
-      <ApplicationFormContent />
-    </ApplicationProvider>
-  );
-};
-
-// Export ApplicationFormContent for use in admin pages
-export { ApplicationFormContent };
-
-export default ApplicationPage;

@@ -8,13 +8,27 @@ import { Certificate } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { FileText, Download, Eye, Users, Calendar, Hash, Lock, Unlock } from 'lucide-react';
+import Input from '../../components/ui/Input';
+import { FileText, Download, Eye, Users, Calendar, Hash, Lock, Unlock, Search, Filter, X } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const CertificatesPage: React.FC = () => {
   const { showToast } = useNotification();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    downloadPermission: 'all', // 'all', 'enabled', 'disabled'
+    issuedDateFrom: '',
+    issuedDateTo: '',
+    registrationDateFrom: '',
+    registrationDateTo: '',
+    verificationId: '',
+  });
 
   useEffect(() => {
     const loadCertificates = async () => {
@@ -22,6 +36,7 @@ const CertificatesPage: React.FC = () => {
         setIsLoading(true);
         const certs = await certificateService.getAllCertificates();
         setCertificates(certs);
+        setFilteredCertificates(certs);
       } catch (error) {
         console.error('Failed to load certificates:', error);
         showToast('Failed to load certificates', 'error');
@@ -32,6 +47,109 @@ const CertificatesPage: React.FC = () => {
 
     loadCertificates();
   }, [showToast]);
+
+  // Filter certificates based on search and filters
+  useEffect(() => {
+    let filtered = certificates;
+
+    // Apply search filter
+    if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+      const searchLower = debouncedSearchTerm.trim().toLowerCase();
+      filtered = filtered.filter((cert) => {
+        const groomName = (cert.groomName || '').trim().toLowerCase();
+        const brideName = (cert.brideName || '').trim().toLowerCase();
+        const certNumber = (cert.certificateNumber || '').trim().toLowerCase();
+        const verificationId = (cert.verificationId || '').trim().toLowerCase();
+
+        return (
+          (groomName && groomName.includes(searchLower)) ||
+          (brideName && brideName.includes(searchLower)) ||
+          (certNumber && certNumber.includes(searchLower)) ||
+          (verificationId && verificationId.includes(searchLower))
+        );
+      });
+    }
+
+    // Apply advanced filters
+    if (filters.downloadPermission !== 'all') {
+      filtered = filtered.filter((cert) => {
+        if (filters.downloadPermission === 'enabled') {
+          return cert.canDownload === true;
+        } else if (filters.downloadPermission === 'disabled') {
+          return cert.canDownload === false;
+        }
+        return true;
+      });
+    }
+
+    if (filters.issuedDateFrom) {
+      const fromDate = new Date(filters.issuedDateFrom);
+      filtered = filtered.filter((cert) => {
+        const issuedDate = new Date(cert.issuedOn);
+        return issuedDate >= fromDate;
+      });
+    }
+
+    if (filters.issuedDateTo) {
+      const toDate = new Date(filters.issuedDateTo);
+      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      filtered = filtered.filter((cert) => {
+        const issuedDate = new Date(cert.issuedOn);
+        return issuedDate <= toDate;
+      });
+    }
+
+    if (filters.registrationDateFrom && filters.registrationDateFrom.trim()) {
+      const fromDate = new Date(filters.registrationDateFrom);
+      filtered = filtered.filter((cert) => {
+        if (!cert.registrationDate) return false;
+        const regDate = new Date(cert.registrationDate);
+        return regDate >= fromDate;
+      });
+    }
+
+    if (filters.registrationDateTo && filters.registrationDateTo.trim()) {
+      const toDate = new Date(filters.registrationDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((cert) => {
+        if (!cert.registrationDate) return false;
+        const regDate = new Date(cert.registrationDate);
+        return regDate <= toDate;
+      });
+    }
+
+    if (filters.verificationId && filters.verificationId.trim()) {
+      const verificationIdLower = filters.verificationId.trim().toLowerCase();
+      filtered = filtered.filter((cert) => {
+        return cert.verificationId.toLowerCase().includes(verificationIdLower);
+      });
+    }
+
+    setFilteredCertificates(filtered);
+  }, [debouncedSearchTerm, filters, certificates]);
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilters({
+      downloadPermission: 'all',
+      issuedDateFrom: '',
+      issuedDateTo: '',
+      registrationDateFrom: '',
+      registrationDateTo: '',
+      verificationId: '',
+    });
+  };
+
+  const hasActiveFilters = () => {
+    return (
+      filters.downloadPermission !== 'all' ||
+      filters.issuedDateFrom !== '' ||
+      filters.issuedDateTo !== '' ||
+      filters.registrationDateFrom !== '' ||
+      filters.registrationDateTo !== '' ||
+      filters.verificationId !== ''
+    );
+  };
 
   const handleDownload = async (cert: Certificate) => {
     try {
@@ -113,10 +231,150 @@ const CertificatesPage: React.FC = () => {
         <p className="text-xs sm:text-sm text-gray-600">View and download all verified marriage certificates</p>
       </div>
 
+      <Card className="p-3 sm:p-4 lg:p-6 mb-3 sm:mb-4 lg:mb-6">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0">
+              <Input
+                placeholder="Search by groom name, bride name, or certificate number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                leftIcon={<Search size={16} className="sm:w-5 sm:h-5" />}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
+                className={`flex-shrink-0 ${showAdvancedFilter ? 'bg-gold-50 text-gold-700' : ''}`}
+                size="sm"
+              >
+                <Filter size={16} className="sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <span className="hidden sm:inline">Filters</span>
+                {hasActiveFilters() && (
+                  <span className="ml-1.5 sm:ml-2 px-1.5 py-0.5 bg-gold-500 text-white text-[10px] sm:text-xs rounded-full">
+                    {[
+                      filters.downloadPermission !== 'all' ? 1 : 0,
+                      filters.issuedDateFrom ? 1 : 0,
+                      filters.issuedDateTo ? 1 : 0,
+                      filters.registrationDateFrom ? 1 : 0,
+                      filters.registrationDateTo ? 1 : 0,
+                      filters.verificationId ? 1 : 0,
+                    ].reduce((a, b) => a + b, 0)}
+                  </span>
+                )}
+              </Button>
+              {hasActiveFilters() && (
+                <Button
+                  variant="ghost"
+                  onClick={handleResetFilters}
+                  className="flex-shrink-0"
+                  size="sm"
+                >
+                  <X size={16} className="sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Clear</span>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilter && (
+            <div className="border-t border-gray-200 pt-3 sm:pt-4 mt-3 sm:mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {/* Download Permission Filter */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Download Permission
+                  </label>
+                  <select
+                    value={filters.downloadPermission}
+                    onChange={(e) => setFilters({ ...filters, downloadPermission: e.target.value })}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl border border-gray-200 focus:border-gold-500 focus:ring-2 focus:ring-gold-500 focus:outline-none text-xs sm:text-sm"
+                  >
+                    <option value="all">All</option>
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                  </select>
+                </div>
+
+                {/* Verification ID Filter */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Verification ID
+                  </label>
+                  <Input
+                    placeholder="Enter verification ID..."
+                    value={filters.verificationId}
+                    onChange={(e) => setFilters({ ...filters, verificationId: e.target.value })}
+                    className="!text-xs sm:!text-sm"
+                  />
+                </div>
+
+                {/* Issued Date From */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Issued Date From
+                  </label>
+                  <Input
+                    type="date"
+                    value={filters.issuedDateFrom}
+                    onChange={(e) => setFilters({ ...filters, issuedDateFrom: e.target.value })}
+                    className="!text-xs sm:!text-sm"
+                  />
+                </div>
+
+                {/* Issued Date To */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Issued Date To
+                  </label>
+                  <Input
+                    type="date"
+                    value={filters.issuedDateTo}
+                    onChange={(e) => setFilters({ ...filters, issuedDateTo: e.target.value })}
+                    className="!text-xs sm:!text-sm"
+                  />
+                </div>
+
+                {/* Registration Date From */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Registration Date From
+                  </label>
+                  <Input
+                    type="date"
+                    value={filters.registrationDateFrom}
+                    onChange={(e) => setFilters({ ...filters, registrationDateFrom: e.target.value })}
+                    className="!text-xs sm:!text-sm"
+                  />
+                </div>
+
+                {/* Registration Date To */}
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
+                    Registration Date To
+                  </label>
+                  <Input
+                    type="date"
+                    value={filters.registrationDateTo}
+                    onChange={(e) => setFilters({ ...filters, registrationDateTo: e.target.value })}
+                    className="!text-xs sm:!text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
       <Card className="p-3 sm:p-4 lg:p-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4 lg:mb-6">
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900">
-            All Verified Certificates ({certificates.length})
+            {hasActiveFilters() || debouncedSearchTerm
+              ? `Filtered Certificates (${filteredCertificates.length} of ${certificates.length})`
+              : `All Verified Certificates (${certificates.length})`}
           </h3>
         </div>
 
@@ -131,9 +389,29 @@ const CertificatesPage: React.FC = () => {
             <p className="text-xs sm:text-sm text-gray-500">No verified certificates yet</p>
             <p className="text-[10px] sm:text-xs text-gray-400 mt-1">Certificates will appear here after applications are verified</p>
           </div>
+        ) : filteredCertificates.length === 0 ? (
+          <div className="text-center py-6 sm:py-8 lg:py-12">
+            <FileText size={32} className="sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3 lg:mb-4" />
+            <p className="text-xs sm:text-sm text-gray-500">No certificates found</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
+              {hasActiveFilters() || debouncedSearchTerm
+                ? 'Try adjusting your search or filters'
+                : 'Certificates will appear here after applications are verified'}
+            </p>
+            {(hasActiveFilters() || debouncedSearchTerm) && (
+              <Button
+                variant="ghost"
+                onClick={handleResetFilters}
+                className="mt-3 sm:mt-4"
+                size="sm"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-            {certificates.map((cert) => (
+            {filteredCertificates.map((cert) => (
               <div
                 key={cert.id}
                 className="p-3 sm:p-4 lg:p-5 bg-gray-50 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-colors border border-gray-200"

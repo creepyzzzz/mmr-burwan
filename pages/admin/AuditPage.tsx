@@ -7,6 +7,7 @@ import Select from '../../components/ui/Select';
 import Badge from '../../components/ui/Badge';
 import { ShieldCheck, Search } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const AuditPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -16,6 +17,7 @@ const AuditPage: React.FC = () => {
     action: 'all',
     search: '',
   });
+  const debouncedSearch = useDebounce(filters.search, 500);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -42,16 +44,16 @@ const AuditPage: React.FC = () => {
       filtered = filtered.filter((log) => log.action.includes(filters.action));
     }
 
-    if (filters.search) {
+    if (debouncedSearch) {
       filtered = filtered.filter(
         (log) =>
-          log.actorName.toLowerCase().includes(filters.search.toLowerCase()) ||
-          log.action.toLowerCase().includes(filters.search.toLowerCase())
+          log.actorName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          log.action.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
     setFilteredLogs(filtered);
-  }, [filters, logs]);
+  }, [filters.actorRole, filters.action, debouncedSearch, logs]);
 
   return (
     <div>

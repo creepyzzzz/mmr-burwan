@@ -12,6 +12,7 @@ import Input from '../../components/ui/Input';
 import VerifyApplicationModal from '../../components/admin/VerifyApplicationModal';
 import { Users, Search, Eye, MessageSquare, FileCheck, CheckCircle, XCircle, ArrowLeft, FileText } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface ClientWithApplication {
   userId: string;
@@ -26,7 +27,8 @@ const ClientsPage: React.FC = () => {
   const [clients, setClients] = useState<ClientWithApplication[]>([]);
   const [filteredClients, setFilteredClients] = useState<ClientWithApplication[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [verifiedFilter, setVerifiedFilter] = useState<string>('all'); // 'all', 'verified', 'unverified', 'draft'
   const [isLoading, setIsLoading] = useState(true);
   const [certificatesMap, setCertificatesMap] = useState<Record<string, boolean>>({});
   const [generatingCert, setGeneratingCert] = useState<string | null>(null);
@@ -134,25 +136,57 @@ const ClientsPage: React.FC = () => {
   useEffect(() => {
     let filtered = clients;
 
-    if (searchTerm) {
+    if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+      const searchLower = debouncedSearchTerm.trim().toLowerCase();
       filtered = filtered.filter((client) => {
-        const name = client.profile 
-          ? `${client.profile.firstName} ${client.profile.lastName}`.toLowerCase()
+        // Groom name from userDetails
+        const groomFirstName = client.application?.userDetails?.firstName?.trim() || '';
+        const groomLastName = client.application?.userDetails?.lastName?.trim() || '';
+        const groomName = groomFirstName || groomLastName 
+          ? `${groomFirstName} ${groomLastName}`.trim().toLowerCase()
           : '';
-        const email = client.email || '';
-        return name.includes(searchTerm.toLowerCase()) || 
-               email.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Bride name from partnerForm
+        const brideFirstName = client.application?.partnerForm?.firstName?.trim() || '';
+        const brideLastName = client.application?.partnerForm?.lastName?.trim() || '';
+        const brideName = brideFirstName || brideLastName
+          ? `${brideFirstName} ${brideLastName}`.trim().toLowerCase()
+          : '';
+        
+        // Groom email (user's email)
+        const groomEmail = (client.email || '').trim().toLowerCase();
+        
+        // Bride email (check if it exists in partnerForm - for future use)
+        const brideEmail = ((client.application?.partnerForm as any)?.email || '').trim().toLowerCase();
+        
+        // Only check fields that have actual values
+        return (
+          (groomName && groomName.includes(searchLower)) ||
+          (brideName && brideName.includes(searchLower)) ||
+          (groomEmail && groomEmail.includes(searchLower)) ||
+          (brideEmail && brideEmail.includes(searchLower))
+        );
       });
     }
 
-    if (statusFilter !== 'all' && statusFilter) {
-      filtered = filtered.filter((client) => 
-        client.application?.status === statusFilter
-      );
+    // Apply verified filter
+    if (verifiedFilter !== 'all') {
+      if (verifiedFilter === 'verified') {
+        filtered = filtered.filter((client) => client.application?.verified === true);
+      } else if (verifiedFilter === 'unverified') {
+        // Show only submitted applications that are not verified (exclude draft)
+        filtered = filtered.filter((client) => 
+          client.application &&
+          (client.application.status === 'submitted' || client.application.status === 'under_review') &&
+          (client.application.verified === false || client.application.verified === undefined)
+        );
+      } else if (verifiedFilter === 'draft') {
+        filtered = filtered.filter((client) => client.application?.status === 'draft');
+      }
     }
 
     setFilteredClients(filtered);
-  }, [searchTerm, statusFilter, clients]);
+  }, [debouncedSearchTerm, verifiedFilter, clients]);
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
@@ -195,23 +229,21 @@ const ClientsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4">
           <div className="flex-1 min-w-0">
             <Input
-              placeholder="Search clients by name or email..."
+              placeholder="Search by groom/bride name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               leftIcon={<Search size={16} className="sm:w-5 sm:h-5" />}
             />
           </div>
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={verifiedFilter}
+            onChange={(e) => setVerifiedFilter(e.target.value)}
             className="px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl border border-gray-200 focus:border-gold-500 focus:ring-2 focus:ring-gold-500 focus:outline-none text-xs sm:text-sm w-full sm:w-auto"
           >
-            <option value="all">All Status</option>
+            <option value="all">All Verification</option>
+            <option value="verified">Verified</option>
+            <option value="unverified">Unverified</option>
             <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="under_review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
           </select>
         </div>
       </Card>
@@ -230,7 +262,7 @@ const ClientsPage: React.FC = () => {
             const bridePhone = client.application?.partnerForm?.mobileNumber || '-';
             
             return (
-              <Card key={client.userId} className="p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <Card key={client.application?.id || client.userId} className="p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="space-y-3">
                   {/* Header with Status Badge */}
                   <div className="flex items-center justify-between">
@@ -466,7 +498,7 @@ const ClientsPage: React.FC = () => {
                 const bridePhone = client.application?.partnerForm?.mobileNumber || '-';
                 
                 return (
-                  <tr key={client.userId} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={client.application?.id || client.userId} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2 sm:py-3 lg:py-4 px-2 sm:px-4">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full bg-gold-100 flex items-center justify-center flex-shrink-0">

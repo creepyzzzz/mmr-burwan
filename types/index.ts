@@ -188,3 +188,15 @@ export interface Notification {
   createdAt: string;
 }
 
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  count: number;
+  page: number;
+  limit: number;
+}
+
+export interface FilterOptions {
+  search?: string;
+  verified?: 'all' | 'verified' | 'unverified' | 'submitted' | 'draft';
+}

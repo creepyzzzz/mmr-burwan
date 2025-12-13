@@ -53,6 +53,109 @@ export const adminService = {
     return certData && certData.length > 0;
   },
 
+  async getApplications(
+    page: number = 1,
+    limit: number = 20,
+    filters?: { search?: string; verified?: string }
+  ): Promise<{ data: Application[]; count: number }> {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    let query = supabase
+      .from('applications')
+      .select(`
+        *,
+        documents (*)
+      `, { count: 'exact' });
+
+    // Apply Filters
+    if (filters?.search) {
+      // Search by ID or user name (need to join probably? or just search ID for now as per UI)
+      // UI says "Application ID". 
+      // If we want to search by name (in user_details json), standard Supabase text search on JSON is tricky.
+      // Let's implement ID search first as in the current UI logic.
+      query = query.ilike('id', `%${filters.search}%`);
+    }
+
+    if (filters?.verified) {
+      switch (filters.verified) {
+        case 'verified':
+          query = query.eq('verified', true);
+          break;
+        case 'unverified':
+          query = query.in('status', ['submitted', 'under_review']).or('verified.is.false,verified.is.null');
+          break;
+        case 'submitted':
+          query = query.eq('status', 'submitted').or('verified.is.false,verified.is.null');
+          break;
+        case 'draft':
+          query = query.eq('status', 'draft');
+          break;
+      }
+    }
+
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return {
+      data: (data || []).map((app) => applicationService.mapApplication(app)),
+      count: count || 0
+    };
+  },
+
+  async getApplicationStats(): Promise<{
+    total: number;
+    pending: number;
+    verified: number;
+    unverified: number;
+  }> {
+    // We run parallel count queries. 
+    // This is much lighter than fetching all rows.
+
+    // 1. Total
+    const totalPromise = supabase
+      .from('applications')
+      .select('id', { count: 'exact', head: true });
+
+    // 2. Pending (submitted or under_review)
+    const pendingPromise = supabase
+      .from('applications')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['submitted', 'under_review']);
+
+    // 3. Verified
+    const verifiedPromise = supabase
+      .from('applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('verified', true);
+
+    // 4. Unverified (submitted/under_review AND verified is false/null)
+    const unverifiedPromise = supabase
+      .from('applications')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['submitted', 'under_review'])
+      .or('verified.is.false,verified.is.null');
+
+    const [totalRes, pendingRes, verifiedRes, unverifiedRes] = await Promise.all([
+      totalPromise,
+      pendingPromise,
+      verifiedPromise,
+      unverifiedPromise
+    ]);
+
+    return {
+      total: totalRes.count || 0,
+      pending: pendingRes.count || 0,
+      verified: verifiedRes.count || 0,
+      unverified: unverifiedRes.count || 0,
+    };
+  },
+
   async getAllApplications(): Promise<Application[]> {
     return applicationService.getAllApplications();
   },

@@ -59,11 +59,12 @@ const DashboardPage: React.FC = () => {
       ]);
 
       // Recalculate completion if profile exists
+      // Recalculate completion if profile exists
       if (profileData) {
-        const updatedCompletion = await profileService.calculateCompletion(user.id);
-        // Reload profile to get updated completion percentage
-        const updatedProfile = await profileService.getProfile(user.id);
-        setProfile(updatedProfile);
+        // Pass the already fetched profileData to avoid re-fetch inside calculateCompletion
+        const result = await profileService.calculateCompletion(user.id, profileData);
+        // Use the returned profile if available, otherwise use original
+        setProfile(result.profile || profileData);
       } else {
         setProfile(profileData);
       }

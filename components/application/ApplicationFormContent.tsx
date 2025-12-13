@@ -8,7 +8,7 @@ import { ApplicationProvider, useApplication } from '../../contexts/ApplicationC
 import { useNotification } from '../../contexts/NotificationContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { documentService } from '../../services/documents';
-import { safeFormatDate } from '../../utils/dateUtils';
+import { safeFormatDate, calculateAge } from '../../utils/dateUtils';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -28,7 +28,7 @@ const groomSchema = z.object({
   firstName: z.string().min(2, 'First name is required'),
   lastName: z.string().optional(),
   fatherName: z.string().min(2, 'Father name is required'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dateOfBirth: z.string().min(1, 'Date of birth is required').refine((val) => calculateAge(val) >= 18, 'Groom must be at least 18 years old'),
   aadhaarNumber: z.string().regex(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
   mobileNumber: z.string().regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
   // Address details
@@ -56,7 +56,7 @@ const brideSchema = z.object({
   firstName: z.string().min(2, 'First name is required'),
   lastName: z.string().optional(),
   fatherName: z.string().min(2, 'Father name is required'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dateOfBirth: z.string().min(1, 'Date of birth is required').refine((val) => calculateAge(val) >= 18, 'Bride must be at least 18 years old'),
   aadhaarNumber: z.string().regex(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
   mobileNumber: z.string().regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
   // Address details
@@ -1087,7 +1087,7 @@ const ApplicationFormContent: React.FC = () => {
             </div>
 
             <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Current Address</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Present Address</h3>
               <div className="space-y-3 sm:space-y-4">
                 <Input
                   label="Village/Street"
@@ -1155,7 +1155,7 @@ const ApplicationFormContent: React.FC = () => {
                 <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Permanent Address</h3>
                 <div className="mb-3 sm:mb-4">
                   <Checkbox
-                    label="Same as current address"
+                    label="Same as present address"
                     checked={groomSameAsPermanent || false}
                     onChange={(e) => groomForm.setValue('sameAsPermanent', e.target.checked)}
                   />
@@ -1306,7 +1306,7 @@ const ApplicationFormContent: React.FC = () => {
             </div>
 
             <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Current Address</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Present Address</h3>
               <div className="space-y-3 sm:space-y-4">
                 <Input
                   label="Village/Street"
@@ -1374,7 +1374,7 @@ const ApplicationFormContent: React.FC = () => {
                 <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Permanent Address</h3>
                 <div className="mb-3 sm:mb-4">
                   <Checkbox
-                    label="Same as current address"
+                    label="Same as present address"
                     checked={brideSameAsPermanent || false}
                     onChange={(e) => brideForm.setValue('sameAsPermanent', e.target.checked)}
                   />
@@ -2154,7 +2154,7 @@ const ApplicationFormContent: React.FC = () => {
               <div className="pt-4 border-t border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Current Address</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Present Address</p>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>{groomData.currentVillageStreet}</p>
                       <p>P.O: {groomData.currentPostOffice}, P.S: {groomData.currentPoliceStation}</p>
@@ -2218,7 +2218,7 @@ const ApplicationFormContent: React.FC = () => {
               <div className="pt-4 border-t border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Current Address</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Present Address</p>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>{brideData.currentVillageStreet}</p>
                       <p>P.O: {brideData.currentPostOffice}, P.S: {brideData.currentPoliceStation}</p>

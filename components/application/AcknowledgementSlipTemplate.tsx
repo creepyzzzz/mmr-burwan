@@ -35,7 +35,6 @@ const AcknowledgementSlipTemplate: React.FC<AcknowledgementSlipTemplateProps> = 
 
                 <div className="text-[10px] text-gray-700 font-serif leading-tight border-t border-gray-100 pt-2">
                     <p className="font-bold">Muhammadan Marriage Registrar & Qaazi Details:</p>
-                    <p>Name: <span className="font-semibold">MINHAJUL ISLAM KHAN</span> | Licence No: 04L(St.)/LW/O/St./4M-123/2019</p>
                     <p>Office Address: VILL. & P.O- GRAMSALIKA, P.S- BURWAN, DIST- MURSHIDABAD, WEST BENGAL, PIN-742132</p>
                     <p>Contact: 9732688698 | mmrburwan@gmail.com | mmrburwan.com</p>
                 </div>
@@ -139,9 +138,10 @@ const AcknowledgementSlipTemplate: React.FC<AcknowledgementSlipTemplateProps> = 
                 </h4>
                 <div className="bg-red-50 p-3 rounded-lg border border-red-100 text-xs text-gray-800 leading-relaxed font-serif print:bg-transparent print:border print:border-gray-200">
                     <p className="mb-1 font-bold">বি.দ্রঃ</p>
-                    <p>
-                        ম্যারেজ রেজিস্ট্রি অফিসে নিকাহ রেজিস্ট্রেশনের জন্য বর–কনে উভয়ের আধার কার্ড, দশম শ্রেণীর এডমিট কার্ড অথবা ভোটার আইডি, জন্ম তারিখের প্রমাণপত্র, ঠিকানার প্রমাণপত্র, পাসপোর্ট সাইজ ছবি, নিকাহনামা (কাজি কর্তৃক প্রদত্ত) এবং দুইজন সাক্ষীর পরিচয়পত্র ও ছবি সঙ্গে নিয়ে আসা আবশ্যক।
-                    </p>
+                    <p> ম্যারেজ রেজিস্ট্রি অফিসে নিকাহ রেজিস্ট্রেশনের জন্য নিম্নে লিখিত ডকুমেন্ট গুলা আনা বাধ্যতামূলক </p>
+                    <p> 1. পাত্র-পাত্রী উভয়ের আধার কার্ড। </p>
+                    <p> 2. পাত্র-পাত্রী উভয়ের দশম শ্রেণীর এডমিট কার্ড অথবা ভোটার আইডি যেটা ওয়েবসাইটে আপলোড করা হয়েছে। </p>
+                    <p> 3. তিন কপি জয়েন্ট রঙিন পাসপোর্ট সাইজ ছবি। </p>
                 </div>
             </div>
 

@@ -514,7 +514,7 @@ const DocumentsPage: React.FC = () => {
                 Review reasons below and select new files.
               </p>
               <p className="text-[10px] sm:text-xs text-rose-700 mb-3 sm:mb-4">
-                <span className="font-medium">Max file size: 500KB</span> per document
+                <span className="font-medium">Max file size: 250KB</span> per document
               </p>
               <div className="space-y-3 sm:space-y-4">
                 {rejectedDocuments.map((doc) => {
@@ -572,8 +572,8 @@ const DocumentsPage: React.FC = () => {
                           <label
                             htmlFor={`reupload-${doc.id}`}
                             className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg cursor-pointer text-xs sm:text-sm ${isReuploadingAll
-                                ? 'opacity-50 cursor-not-allowed bg-gray-50'
-                                : 'hover:bg-gray-50 bg-white'
+                              ? 'opacity-50 cursor-not-allowed bg-gray-50'
+                              : 'hover:bg-gray-50 bg-white'
                               }`}
                           >
                             <Upload size={14} className="sm:w-4 sm:h-4" />
@@ -633,7 +633,7 @@ const DocumentsPage: React.FC = () => {
         <Card className="p-3 sm:p-5 mb-4 sm:mb-6">
           <h2 className="font-serif text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">Upload Documents</h2>
           <p className="text-[10px] sm:text-xs text-gray-500 mb-4 sm:mb-5">
-            <span className="text-gold-600 font-medium">Max file size: 500KB</span> per document. Supported formats: Images and PDF.
+            <span className="text-gold-600 font-medium">Max file size: 250KB</span> per document. Supported formats: Images and PDF.
           </p>
 
           {/* Groom's Documents */}

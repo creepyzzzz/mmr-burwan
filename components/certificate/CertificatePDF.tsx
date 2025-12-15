@@ -9,11 +9,14 @@ const getImageUrl = (path: string): string => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // For relative paths (local assets), prepend origin
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}${path}`;
-  }
-  return path;
+
+  // For production, use the deployed site URL
+  // For development, use window.location.origin
+  const baseUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://mmrburwan.netlify.app'; // Fallback to production URL
+
+  return `${baseUrl}${path}`;
 };
 
 // Register Times font family

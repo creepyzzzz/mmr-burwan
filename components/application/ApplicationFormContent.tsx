@@ -694,8 +694,6 @@ const ApplicationFormContent: React.FC = () => {
               lastName: data.lastName,
               fatherName: data.fatherName,
               dateOfBirth: data.dateOfBirth,
-              idNumber: data.aadhaarNumber,
-              idNumber: data.aadhaarNumber,
               aadhaarNumber: data.aadhaarNumber,
               mobileNumber: data.mobileNumber,
               voterOrRollNo: data.voterOrRollNo,

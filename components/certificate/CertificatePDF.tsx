@@ -9,11 +9,14 @@ const getImageUrl = (path: string): string => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // For relative paths (local assets), prepend origin
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}${path}`;
-  }
-  return path;
+
+  // For production, use the deployed site URL
+  // For development, use window.location.origin
+  const baseUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://mmrburwan.netlify.app'; // Fallback to production URL
+
+  return `${baseUrl}${path}`;
 };
 
 // Register Times font family
@@ -131,6 +134,9 @@ interface CertificatePDFProps {
   };
   jointPhotoDataUrl?: string | null;
   qrCodeImage?: string | null;
+  borderImageDataUrl?: string | null;
+  emblemImageDataUrl?: string | null;
+  westBengalLogoDataUrl?: string | null;
 }
 
 // Exact colors from the original
@@ -481,7 +487,15 @@ const styles = StyleSheet.create({
   },
 });
 
-export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, certificateData, jointPhotoDataUrl, qrCodeImage }) => {
+export const CertificatePDF: React.FC<CertificatePDFProps> = ({
+  application,
+  certificateData,
+  jointPhotoDataUrl,
+  qrCodeImage,
+  borderImageDataUrl,
+  emblemImageDataUrl,
+  westBengalLogoDataUrl
+}) => {
   const userDetails = application.userDetails || {};
   const partnerDetails = (application as any).partnerDetails || (application as any).partnerForm || {};
   const userAddress = application.userAddress || (application as any).address || {};
@@ -503,11 +517,13 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
       <Page size="A4" style={styles.page}>
         {/* Border */}
         <View style={styles.borderContainer}>
-          <Image
-            src={getImageUrl("/assets/certificate/border.png")}
-            style={styles.borderImage}
-            cache={false}
-          />
+          {borderImageDataUrl && (
+            <Image
+              src={borderImageDataUrl}
+              style={styles.borderImage}
+              cache={false}
+            />
+          )}
         </View>
 
         {/* Content */}
@@ -516,17 +532,21 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
           <View style={styles.header}>
             <View style={styles.logosContainer}>
               <View style={styles.emblemContainer}>
+                {emblemImageDataUrl && (
+                  <Image
+                    src={emblemImageDataUrl}
+                    style={styles.emblem}
+                    cache={false}
+                  />
+                )}
+              </View>
+              {westBengalLogoDataUrl && (
                 <Image
-                  src={getImageUrl("/assets/certificate/emblem-india.png")}
-                  style={styles.emblem}
+                  src={westBengalLogoDataUrl}
+                  style={styles.westBengalLogo}
                   cache={false}
                 />
-              </View>
-              <Image
-                src={getImageUrl("/assets/certificate/west-bengal-logo.png")}
-                style={styles.westBengalLogo}
-                cache={false}
-              />
+              )}
             </View>
             <Text style={styles.govTitle}>GOVERNMENT OF WEST BENGAL</Text>
             <View style={styles.lawDeptBox}>
@@ -676,7 +696,7 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
           {/* Registrar Details */}
           <View style={styles.registrarBox}>
             <Text style={styles.registrarTitle}>Muhammadan Marriage Registrar & Qaazi Details:</Text>
-            
+
             {/* Conditional rendering based on registrar type */}
             {certificateData.registrarQualifications ? (
               // MD Ismail Khan format: Name (left) with License and Sanad No (right) on same line, then Qualifications below
@@ -684,7 +704,7 @@ export const CertificatePDF: React.FC<CertificatePDFProps> = ({ application, cer
                 <View style={[styles.registrarRow, { justifyContent: 'space-between', alignItems: 'flex-start' }]}>
                   <View style={{ flex: 2, paddingRight: 15 }}>
                     <Text style={styles.registrarValue}>
-                      SENIOR MUFTI MAULANA AL-HAJJ <Text style={styles.registrarValueBold}>MD. ISMAIL KHAN</Text>
+                      SENIOR MUFTI MAULANA AL-HAJJ <Text style={styles.registrarValueBold}>MD ISMAIL KHAN</Text>
                     </Text>
                   </View>
                   <View style={{ flex: 1, flexShrink: 0 }}>

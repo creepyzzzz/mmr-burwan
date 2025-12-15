@@ -193,6 +193,27 @@ const ViewApplicationPage: React.FC = () => {
           </div>
         </Card>
 
+        {/* Groom Addresses */}
+        <Card className="p-2.5 sm:p-4 lg:p-6">
+          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-1.5 sm:mb-3 lg:mb-4">
+            Groom Addresses
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
+            <div>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Present Address</p>
+              <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
+                <p className="break-words">{formatAddress(userCurrentAddress)}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Permanent Address</p>
+              <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
+                <p className="break-words">{formatAddress(userAddress)}</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* Bride Personal Details */}
         <Card className="p-2.5 sm:p-4 lg:p-6">
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-1.5 sm:mb-3 lg:mb-4">
@@ -224,27 +245,6 @@ const ViewApplicationPage: React.FC = () => {
             <div>
               <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Mobile Number</p>
               <p className="font-medium text-gray-900">{(partnerForm as any).mobileNumber || '-'}</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Groom Addresses */}
-        <Card className="p-2.5 sm:p-4 lg:p-6">
-          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-1.5 sm:mb-3 lg:mb-4">
-            Groom Addresses
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
-            <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Present Address</p>
-              <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
-                <p className="break-words">{formatAddress(userCurrentAddress)}</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Permanent Address</p>
-              <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
-                <p className="break-words">{formatAddress(userAddress)}</p>
-              </div>
             </div>
           </div>
         </Card>

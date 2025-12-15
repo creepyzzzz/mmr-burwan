@@ -135,13 +135,14 @@ const parseCertificateNumber = (certNumber: string | undefined) => {
 
 const certificateSchema = z.object({
   bookNumber: z.string().min(1, 'Book number is required'),
-  volumeNumber: z.string().min(1, 'Volume number is required'),
-  volumeLetter: z.string().min(1, 'Volume letter is required'),
-  volumeYear: z.string().regex(/^$|^\d+$/, 'Volume year must be digits only or empty'),
-  serialNumber: z.string().min(1, 'Serial number is required'),
-  serialYear: z.string().regex(/^$|^\d+$/, 'Serial year must be digits only or empty'),
-  pageNumber: z.string().min(1, 'Page number is required'),
+  volumeNumber: z.string().optional(),
+  volumeLetter: z.string().optional(),
+  volumeYear: z.string().optional(),
+  serialNumber: z.string().optional(),
+  serialYear: z.string().optional(),
+  pageNumber: z.string().optional(),
 });
+
 
 interface SelectCertificateNumberModalProps {
   isOpen: boolean;
@@ -184,19 +185,22 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
       return manualEntry.trim();
     }
     const { bookNumber, volumeNumber, volumeLetter, volumeYear, serialNumber, serialYear, pageNumber } = formValues;
-    if (bookNumber && volumeNumber && volumeLetter && serialNumber && pageNumber) {
-      const parts = [
-        'WB',
-        'MSD',
-        'BRW',
-        bookNumber,
-        volumeNumber,
-        volumeLetter,
-        ...(volumeYear ? [volumeYear] : []),
-        serialNumber,
-        ...(serialYear ? [serialYear] : []),
-        pageNumber
-      ];
+
+    // Construct parts array with available values
+    const parts = [
+      'WB',
+      'MSD',
+      'BRW',
+      bookNumber || 'I',
+      volumeNumber,
+      volumeLetter,
+      volumeYear,
+      serialNumber,
+      serialYear,
+      pageNumber
+    ].filter(Boolean); // Remove empty values to avoid double dashes
+
+    if (parts.length > 3) { // Only return if we have more than just the prefix keys
       return parts.join('-');
     }
     return '';
@@ -364,7 +368,7 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
               {/* Volume Number */}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Volume Number <span className="text-rose-600">*</span>
+                  Volume Number
                 </label>
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <div>
@@ -372,7 +376,6 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                       {...register('volumeNumber')}
                       error={errors.volumeNumber?.message}
                       placeholder="1"
-                      required
                       disabled={isSubmitting}
                       className="text-center"
                     />
@@ -381,13 +384,7 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                   <div>
                     <input
                       {...register('volumeLetter')}
-                      onChange={(e) => {
-                        const value = e.target.value.toUpperCase().slice(0, 1);
-                        setValue('volumeLetter', value, { shouldValidate: true });
-                      }}
-                      value={formValues.volumeLetter || ''}
                       placeholder="C"
-                      required
                       disabled={isSubmitting}
                       className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed text-center uppercase"
                     />
@@ -399,11 +396,6 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                   <div>
                     <input
                       {...register('volumeYear')}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        setValue('volumeYear', value, { shouldValidate: true });
-                      }}
-                      value={formValues.volumeYear || ''}
                       placeholder="Optional"
                       disabled={isSubmitting}
                       className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed text-center"
@@ -419,7 +411,7 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
               {/* Serial Number */}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Serial Number <span className="text-rose-600">*</span>
+                  Serial Number
                 </label>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <div>
@@ -427,7 +419,6 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                       {...register('serialNumber')}
                       error={errors.serialNumber?.message}
                       placeholder="16"
-                      required
                       disabled={isSubmitting}
                       className="text-center"
                     />
@@ -436,11 +427,6 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                   <div>
                     <input
                       {...register('serialYear')}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        setValue('serialYear', value, { shouldValidate: true });
-                      }}
-                      value={formValues.serialYear || ''}
                       placeholder="Optional"
                       disabled={isSubmitting}
                       className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed text-center"
@@ -460,7 +446,6 @@ const SelectCertificateNumberModal: React.FC<SelectCertificateNumberModalProps> 
                   {...register('pageNumber')}
                   error={errors.pageNumber?.message}
                   placeholder="21"
-                  required
                   disabled={isSubmitting}
                   className="text-center"
                 />

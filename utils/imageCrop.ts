@@ -52,7 +52,7 @@ export async function createCroppedImageFile(
   // Convert canvas to blob
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => {
+      async (blob) => {
         if (!blob) {
           reject(new Error('Failed to create blob from canvas'));
           return;
@@ -66,7 +66,19 @@ export async function createCroppedImageFile(
           lastModified: Date.now(),
         });
 
-        resolve(croppedFile);
+        // Check if file size exceeds 250KB limit
+        if (croppedFile.size > 250 * 1024) {
+          try {
+            // Compress the file
+            const compressedFile = await compressImageFile(croppedFile);
+            resolve(compressedFile);
+          } catch (error) {
+            console.error('Failed to compress cropped image:', error);
+            resolve(croppedFile); // Return original if compression fails
+          }
+        } else {
+          resolve(croppedFile);
+        }
       },
       originalFile.type || 'image/jpeg',
       quality

@@ -161,6 +161,14 @@ const ContactPage: React.FC = () => {
                                 তিন কপি জয়েন্ট রঙিন পাসপোর্ট সাইজ ছবি।
                             </p>
                         </div>
+                        <div className="flex items-start gap-2 sm:gap-3">
+                            <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                                4
+                            </span>
+                            <p className="text-xs sm:text-sm text-amber-900 leading-relaxed flex-1">
+                                ফর্ম পূরণ করার পর Acknowledgement Slip টার 1 কপি জেরক্স সঙ্গে আনুন।
+                            </p>
+                        </div>
                     </div>
                 </div>
             </Card>

@@ -50,6 +50,7 @@ const AcknowledgementSlipTemplate: React.FC<AcknowledgementSlipTemplateProps> = 
                     <p className="text-[13px] mb-2 font-bold"> 1. পাত্র-পাত্রী উভয়ের আধার কার্ড। </p>
                     <p className="text-[13px] mb-2 font-bold"> 2. পাত্র-পাত্রী উভয়ের দশম শ্রেণীর এডমিট কার্ড অথবা ভোটার আইডি যেটা ওয়েবসাইটে আপলোড করা হয়েছে। </p>
                     <p className="text-[13px] mb-2 font-bold"> 3. তিন কপি জয়েন্ট রঙিন পাসপোর্ট সাইজ ছবি। </p>
+                    <p className="text-[13px] mb-2 font-bold"> 4. ফর্ম পূরণ করার পর Acknowledgement Slip টার 1 কপি জেরক্স সঙ্গে আনুন। </p>
                 </div>
             </div>
 

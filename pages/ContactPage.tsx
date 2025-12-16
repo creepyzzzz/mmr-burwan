@@ -46,7 +46,7 @@ const ContactPage: React.FC = () => {
                                 Office Address
                             </h3>
                             <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                                VILL. & P.O- GRAMSALIKA<br />
+                                VILL. & P.O- GRAMSHALIKA<br />
                                 P.S- BURWAN<br />
                                 DIST- MURSHIDABAD<br />
                                 WEST BENGAL, PIN-742132
@@ -166,7 +166,7 @@ const ContactPage: React.FC = () => {
                                 4
                             </span>
                             <p className="text-xs sm:text-sm text-amber-900 leading-relaxed flex-1">
-                                ফর্ম পূরণ করার পর Acknowledgement Slip টার 1 কপি জেরক্স সঙ্গে আনুন।
+                                ফর্ম পূরণ করার পর Acknowledgement Slip টার এক কপি জেরক্স সঙ্গে আনুন।
                             </p>
                         </div>
                     </div>

@@ -520,7 +520,7 @@ const ApplicationDetailsPage: React.FC = () => {
 
         {/* Groom Personal Details */}
         <Card className="p-3 sm:p-4 lg:p-6">
-          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Personal Details</h3>
+          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom [পাত্র] Personal Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm">
             <div>
               <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Full Name</p>
@@ -604,7 +604,7 @@ const ApplicationDetailsPage: React.FC = () => {
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Addresses</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Groom Present Address</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Groom [পাত্র] Present Address</p>
               {isEditing ? (
                 <div className="space-y-3">
                   <div>
@@ -668,7 +668,7 @@ const ApplicationDetailsPage: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">ZIP Code</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN Code</label>
                       <Input
                         value={userCurrentAddress.zipCode || ''}
                         maxLength={6}
@@ -679,7 +679,7 @@ const ApplicationDetailsPage: React.FC = () => {
                             userCurrentAddress: { ...userCurrentAddress, zipCode: value }
                           });
                         }}
-                        placeholder="Enter ZIP code"
+                        placeholder="Enter PIN code"
                       />
                     </div>
                     <div>
@@ -705,7 +705,7 @@ const ApplicationDetailsPage: React.FC = () => {
               )}
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Groom Permanent Address</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Groom [পাত্র] Permanent Address</p>
               {isEditing ? (
                 <div className="space-y-3">
                   <div>
@@ -769,7 +769,7 @@ const ApplicationDetailsPage: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">ZIP Code</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN Code</label>
                       <Input
                         value={userAddress.zipCode || ''}
                         maxLength={6}
@@ -780,7 +780,7 @@ const ApplicationDetailsPage: React.FC = () => {
                             userAddress: { ...userAddress, zipCode: value }
                           });
                         }}
-                        placeholder="Enter ZIP code"
+                        placeholder="Enter PIN code"
                       />
                     </div>
                     <div>
@@ -810,7 +810,7 @@ const ApplicationDetailsPage: React.FC = () => {
 
         {/* Bride Personal Details */}
         <Card className="p-3 sm:p-4 lg:p-6">
-          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Personal Details</h3>
+          <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride [পাত্রী] Personal Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm">
             <div>
               <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Full Name</p>
@@ -894,7 +894,7 @@ const ApplicationDetailsPage: React.FC = () => {
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Addresses</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Bride Present Address</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Bride [পাত্রী] Present Address</p>
               {isEditing ? (
                 <div className="space-y-3">
                   <div>
@@ -958,7 +958,7 @@ const ApplicationDetailsPage: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">ZIP Code</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN Code</label>
                       <Input
                         value={partnerCurrentAddress.zipCode || ''}
                         maxLength={6}
@@ -969,7 +969,7 @@ const ApplicationDetailsPage: React.FC = () => {
                             partnerCurrentAddress: { ...partnerCurrentAddress, zipCode: value }
                           });
                         }}
-                        placeholder="Enter ZIP code"
+                        placeholder="Enter PIN code"
                       />
                     </div>
                     <div>
@@ -995,7 +995,7 @@ const ApplicationDetailsPage: React.FC = () => {
               )}
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Bride Permanent Address</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Bride [পাত্রী] Permanent Address</p>
               {isEditing ? (
                 <div className="space-y-3">
                   <div>
@@ -1059,7 +1059,7 @@ const ApplicationDetailsPage: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">ZIP Code</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN Code</label>
                       <Input
                         value={partnerAddress.zipCode || ''}
                         maxLength={6}
@@ -1070,7 +1070,7 @@ const ApplicationDetailsPage: React.FC = () => {
                             partnerAddress: { ...partnerAddress, zipCode: value }
                           });
                         }}
-                        placeholder="Enter ZIP code"
+                        placeholder="Enter PIN code"
                       />
                     </div>
                     <div>

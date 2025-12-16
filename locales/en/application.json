@@ -26,7 +26,7 @@
     "policeStation": "Police Station",
     "district": "District",
     "state": "State",
-    "zipCode": "ZIP Code",
+    "zipCode": "PIN Code",
     "country": "Country",
     "marriageDate": "Marriage Date"
   },
@@ -47,7 +47,7 @@
     "policeStation": "Police Station",
     "district": "District",
     "state": "State",
-    "zipCode": "ZIP Code",
+    "zipCode": "PIN Code",
     "country": "Country"
   },
   "documents": {
@@ -98,7 +98,7 @@
     "policeStationRequired": "Police Station is required",
     "districtRequired": "District is required",
     "stateRequired": "State is required",
-    "zipCodeRequired": "ZIP code must be exactly 6 digits",
+    "zipCodeRequired": "PIN code must be exactly 6 digits",
     "countryRequired": "Country is required",
     "marriageDateRequired": "Marriage date is required",
     "consentRequired": "You must provide consent",

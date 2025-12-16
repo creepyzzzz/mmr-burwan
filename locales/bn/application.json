@@ -26,7 +26,7 @@
     "policeStation": "পুলিশ স্টেশন",
     "district": "জেলা",
     "state": "রাজ্য",
-    "zipCode": "জিপ কোড",
+    "zipCode": "পিন কোড",
     "country": "দেশ",
     "marriageDate": "বিবাহের তারিখ"
   },
@@ -47,7 +47,7 @@
     "policeStation": "পুলিশ স্টেশন",
     "district": "জেলা",
     "state": "রাজ্য",
-    "zipCode": "জিপ কোড",
+    "zipCode": "পিন কোড",
     "country": "দেশ"
   },
   "documents": {
@@ -98,7 +98,7 @@
     "policeStationRequired": "পুলিশ স্টেশন আবশ্যক",
     "districtRequired": "জেলা আবশ্যক",
     "stateRequired": "রাজ্য আবশ্যক",
-    "zipCodeRequired": "জিপ কোড অবশ্যই ঠিক ৬ সংখ্যার হতে হবে",
+    "zipCodeRequired": "পিন কোড অবশ্যই ঠিক ৬ সংখ্যার হতে হবে",
     "countryRequired": "দেশ আবশ্যক",
     "marriageDateRequired": "বিবাহের তারিখ আবশ্যক",
     "consentRequired": "আপনাকে সম্মতি প্রদান করতে হবে",

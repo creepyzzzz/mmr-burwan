@@ -425,7 +425,7 @@ const SettingsPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <Input
-                  label="ZIP Code"
+                  label="PIN Code"
                   value={formData.addressZipCode}
                   onChange={(e) => setFormData({ ...formData, addressZipCode: e.target.value })}
                   placeholder="ZIP"

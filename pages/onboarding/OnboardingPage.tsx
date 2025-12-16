@@ -38,7 +38,7 @@ const addressSchema = z.object({
   street: z.string().min(5, 'Street address is required'),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
-  zipCode: z.string().min(5, 'ZIP code is required'),
+  zipCode: z.string().min(5, 'PIN code is required'),
   country: z.string().min(2, 'Country is required'),
 });
 
@@ -84,7 +84,7 @@ const OnboardingPage: React.FC = () => {
     try {
       const updated = { ...onboardingData, [stepName]: stepData };
       setOnboardingData(updated);
-      
+
       if (user) {
         if (stepName === 'personal') {
           await profileService.updateProfile(user.id, {
@@ -137,7 +137,7 @@ const OnboardingPage: React.FC = () => {
     if (isValid) {
       const stepNames = ['personal', 'partner', 'address'];
       await saveStep(stepData, stepNames[currentStep]);
-      
+
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
@@ -161,11 +161,11 @@ const OnboardingPage: React.FC = () => {
           showToast('Profile not found. Please try again.', 'error');
           return;
         }
-        
+
         // Recalculate and save completion percentage
         const completion = await profileService.calculateCompletion(user.id);
         console.log('Profile completion calculated:', completion);
-        
+
         showToast('Onboarding completed!', 'success');
         navigate('/dashboard');
       } catch (error: any) {
@@ -259,7 +259,7 @@ const OnboardingPage: React.FC = () => {
               required
             />
             <Input
-              label="ZIP Code"
+              label="PIN Code"
               {...addressForm.register('zipCode')}
               error={addressForm.formState.errors.zipCode?.message}
               required

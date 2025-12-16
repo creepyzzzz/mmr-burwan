@@ -163,7 +163,7 @@ const ViewApplicationPage: React.FC = () => {
         {/* Groom Personal Details */}
         <Card className="p-2.5 sm:p-4 lg:p-6">
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-1.5 sm:mb-3 lg:mb-4">
-            Groom Personal Details
+            Groom [পাত্র] Personal Details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 lg:gap-4 text-xs sm:text-sm">
             <div className="min-w-0">
@@ -200,13 +200,13 @@ const ViewApplicationPage: React.FC = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
             <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Present Address</p>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom [পাত্র] Present Address</p>
               <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
                 <p className="break-words">{formatAddress(userCurrentAddress)}</p>
               </div>
             </div>
             <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom Permanent Address</p>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Groom [পাত্র] Permanent Address</p>
               <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
                 <p className="break-words">{formatAddress(userAddress)}</p>
               </div>
@@ -217,7 +217,7 @@ const ViewApplicationPage: React.FC = () => {
         {/* Bride Personal Details */}
         <Card className="p-2.5 sm:p-4 lg:p-6">
           <h3 className="font-semibold text-xs sm:text-sm lg:text-base text-gray-900 mb-1.5 sm:mb-3 lg:mb-4">
-            Bride Personal Details
+            Bride [পাত্রী] Personal Details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 lg:gap-4 text-xs sm:text-sm">
             <div className="min-w-0">
@@ -256,13 +256,13 @@ const ViewApplicationPage: React.FC = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
             <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Bride Present Address</p>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Bride [পাত্রী] Present Address</p>
               <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
                 <p className="break-words">{formatAddress(partnerCurrentAddress)}</p>
               </div>
             </div>
             <div>
-              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Bride Permanent Address</p>
+              <p className="text-[11px] sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Bride [পাত্রী] Permanent Address</p>
               <div className="text-[11px] sm:text-sm text-gray-600 space-y-1 break-words">
                 <p className="break-words">{formatAddress(partnerAddress)}</p>
               </div>

@@ -38,14 +38,14 @@ const groomSchema = z.object({
   permanentPoliceStation: z.string().min(2, 'Police Station is required'),
   permanentDistrict: z.string().min(2, 'District is required'),
   permanentState: z.string().min(2, 'State is required'),
-  permanentZipCode: z.string().regex(/^\d{6}$/, 'ZIP code must be exactly 6 digits'),
+  permanentZipCode: z.string().regex(/^\d{6}$/, 'PIN code must be exactly 6 digits'),
   permanentCountry: z.string().min(2, 'Country is required'),
   currentVillageStreet: z.string().min(3, 'Village/Street is required'),
   currentPostOffice: z.string().min(2, 'Post Office is required'),
   currentPoliceStation: z.string().min(2, 'Police Station is required'),
   currentDistrict: z.string().min(2, 'District is required'),
   currentState: z.string().min(2, 'State is required'),
-  currentZipCode: z.string().regex(/^\d{6}$/, 'ZIP code must be exactly 6 digits'),
+  currentZipCode: z.string().regex(/^\d{6}$/, 'PIN code must be exactly 6 digits'),
   currentCountry: z.string().min(2, 'Country is required'),
   sameAsPermanent: z.boolean().optional(),
   marriageDate: z.string().min(1, 'Marriage date is required').refine((val) => {
@@ -70,14 +70,14 @@ const brideSchema = z.object({
   permanentPoliceStation: z.string().min(2, 'Police Station is required'),
   permanentDistrict: z.string().min(2, 'District is required'),
   permanentState: z.string().min(2, 'State is required'),
-  permanentZipCode: z.string().regex(/^\d{6}$/, 'ZIP code must be exactly 6 digits'),
+  permanentZipCode: z.string().regex(/^\d{6}$/, 'PIN code must be exactly 6 digits'),
   permanentCountry: z.string().min(2, 'Country is required'),
   currentVillageStreet: z.string().min(3, 'Village/Street is required'),
   currentPostOffice: z.string().min(2, 'Post Office is required'),
   currentPoliceStation: z.string().min(2, 'Police Station is required'),
   currentDistrict: z.string().min(2, 'District is required'),
   currentState: z.string().min(2, 'State is required'),
-  currentZipCode: z.string().regex(/^\d{6}$/, 'ZIP code must be exactly 6 digits'),
+  currentZipCode: z.string().regex(/^\d{6}$/, 'PIN code must be exactly 6 digits'),
   currentCountry: z.string().min(2, 'Country is required'),
   sameAsPermanent: z.boolean().optional(),
 });
@@ -1038,7 +1038,7 @@ const ApplicationFormContent: React.FC = () => {
         return (
           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <div>
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Personal Details</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom [পাত্র] Personal Details</h3>
               <div className="space-y-3 sm:space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                   <Input
@@ -1111,7 +1111,7 @@ const ApplicationFormContent: React.FC = () => {
             </div>
 
             <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Present Address</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom [পাত্র] Present Address</h3>
               <div className="space-y-3 sm:space-y-4">
                 <Input
                   label="Village/Street"
@@ -1153,7 +1153,7 @@ const ApplicationFormContent: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                   <Input
-                    label="ZIP Code"
+                    label="PIN Code"
                     maxLength={6}
                     {...groomForm.register('currentZipCode', {
                       onChange: (e) => {
@@ -1176,7 +1176,7 @@ const ApplicationFormContent: React.FC = () => {
               </div>
 
               <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200 mt-4 sm:mt-5 lg:mt-6">
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom Permanent Address</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Groom [পাত্র] Permanent Address</h3>
                 <div className="mb-3 sm:mb-4">
                   <Checkbox
                     label="Same as present address"
@@ -1225,7 +1225,7 @@ const ApplicationFormContent: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                     <Input
-                      label="ZIP Code"
+                      label="PIN Code"
                       maxLength={6}
                       {...groomForm.register('permanentZipCode', {
                         onChange: (e) => {
@@ -1269,7 +1269,7 @@ const ApplicationFormContent: React.FC = () => {
         return (
           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <div>
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Personal Details</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride [পাত্রী] Personal Details</h3>
               <div className="space-y-3 sm:space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                   <Input
@@ -1342,7 +1342,7 @@ const ApplicationFormContent: React.FC = () => {
             </div>
 
             <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Present Address</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride [পাত্রী] Present Address</h3>
               <div className="space-y-3 sm:space-y-4">
                 <Input
                   label="Village/Street"
@@ -1384,7 +1384,7 @@ const ApplicationFormContent: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                   <Input
-                    label="ZIP Code"
+                    label="PIN Code"
                     maxLength={6}
                     {...brideForm.register('currentZipCode', {
                       onChange: (e) => {
@@ -1407,7 +1407,7 @@ const ApplicationFormContent: React.FC = () => {
               </div>
 
               <div className="pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200 mt-4 sm:mt-5 lg:mt-6">
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride Permanent Address</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3 lg:mb-4">Bride [পাত্রী] Permanent Address</h3>
                 <div className="mb-3 sm:mb-4">
                   <Checkbox
                     label="Same as present address"
@@ -1456,7 +1456,7 @@ const ApplicationFormContent: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                     <Input
-                      label="ZIP Code"
+                      label="PIN Code"
                       maxLength={6}
                       {...brideForm.register('permanentZipCode', {
                         onChange: (e) => {

@@ -23,7 +23,8 @@ import { ArrowRight, ArrowLeft, Save, Upload, X, FileText, Edit, CheckCircle, Ey
 import ImageCropModal from '../../components/ui/ImageCropModal';
 
 // Groom Details Schema (User personal + address)
-const groomSchema = z.object({
+// Factory function to create schema with optional voterOrRollNo for admin context
+const createGroomSchema = (isAdminContext: boolean = false) => z.object({
   // Personal details
   firstName: z.string().min(2, 'First name is required'),
   lastName: z.string().optional(),
@@ -31,7 +32,9 @@ const groomSchema = z.object({
   dateOfBirth: z.string().min(1, 'Date of birth is required').refine((val) => calculateAge(val) >= 18, 'Groom must be at least 18 years old'),
   aadhaarNumber: z.string().regex(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
   mobileNumber: z.string().regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
-  voterOrRollNo: z.string().min(1, 'Voter EPIC No or Roll No is required'),
+  voterOrRollNo: isAdminContext
+    ? z.string().optional()
+    : z.string().min(1, 'Voter EPIC No or Roll No is required'),
   // Address details
   permanentVillageStreet: z.string().min(3, 'Village/Street is required'),
   permanentPostOffice: z.string().min(2, 'Post Office is required'),
@@ -54,8 +57,12 @@ const groomSchema = z.object({
   }, 'Marriage date cannot be in the future'),
 });
 
+// Default schema (for clients - voterOrRollNo is required)
+const groomSchema = createGroomSchema(false);
+
 // Bride Details Schema (Partner personal + address)
-const brideSchema = z.object({
+// Factory function to create schema with optional voterOrRollNo for admin context
+const createBrideSchema = (isAdminContext: boolean = false) => z.object({
   // Personal details
   firstName: z.string().min(2, 'First name is required'),
   lastName: z.string().optional(),
@@ -63,7 +70,9 @@ const brideSchema = z.object({
   dateOfBirth: z.string().min(1, 'Date of birth is required').refine((val) => calculateAge(val) >= 18, 'Bride must be at least 18 years old'),
   aadhaarNumber: z.string().regex(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
   mobileNumber: z.string().regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
-  voterOrRollNo: z.string().min(1, 'Voter EPIC No or Roll No is required'),
+  voterOrRollNo: isAdminContext
+    ? z.string().optional()
+    : z.string().min(1, 'Voter EPIC No or Roll No is required'),
   // Address details
   permanentVillageStreet: z.string().min(3, 'Village/Street is required'),
   permanentPostOffice: z.string().min(2, 'Post Office is required'),
@@ -81,6 +90,9 @@ const brideSchema = z.object({
   currentCountry: z.string().min(2, 'Country is required'),
   sameAsPermanent: z.boolean().optional(),
 });
+
+// Default schema (for clients - voterOrRollNo is required)
+const brideSchema = createBrideSchema(false);
 
 const declarationsSchema = z.object({
   consent: z.boolean().refine((val) => val === true, 'You must provide consent'),
@@ -138,7 +150,7 @@ const ApplicationFormContent: React.FC = () => {
   }, [application?.status, currentStep, showToast]);
 
   const groomForm = useForm({
-    resolver: zodResolver(groomSchema),
+    resolver: zodResolver(createGroomSchema(isAdminContext)),
     mode: 'onChange', // Validate on change for real-time feedback
     defaultValues: {
       // For proxy/offline applications (admin context), don't use admin's name - only use saved application data
@@ -171,7 +183,7 @@ const ApplicationFormContent: React.FC = () => {
   });
 
   const brideForm = useForm({
-    resolver: zodResolver(brideSchema),
+    resolver: zodResolver(createBrideSchema(isAdminContext)),
     mode: 'onChange', // Validate on change for real-time feedback
     defaultValues: {
       firstName: application?.partnerForm?.firstName || '',
@@ -1091,7 +1103,7 @@ const ApplicationFormContent: React.FC = () => {
                     {...groomForm.register('voterOrRollNo')}
                     error={groomForm.formState.errors.voterOrRollNo?.message}
                     placeholder="Enter Voter No or Roll No"
-                    required
+                    required={!isAdminContext}
                     disabled={isSubmitted}
                   />
                 </div>
@@ -1322,7 +1334,7 @@ const ApplicationFormContent: React.FC = () => {
                     {...brideForm.register('voterOrRollNo')}
                     error={brideForm.formState.errors.voterOrRollNo?.message}
                     placeholder="Enter Voter No or Roll No"
-                    required
+                    required={!isAdminContext}
                     disabled={isSubmitted}
                   />
                 </div>
@@ -2186,6 +2198,10 @@ const ApplicationFormContent: React.FC = () => {
                   <p className="text-gray-500 mb-1">Mobile Number</p>
                   <p className="font-medium text-gray-900">{groomData.mobileNumber}</p>
                 </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Voter EPIC No OR Madhyamik ROLL No</p>
+                  <p className="font-medium text-gray-900">{groomData.voterOrRollNo}</p>
+                </div>
               </div>
               <div className="pt-4 border-t border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2249,6 +2265,10 @@ const ApplicationFormContent: React.FC = () => {
                 <div>
                   <p className="text-gray-500 mb-1">Mobile Number</p>
                   <p className="font-medium text-gray-900">{brideData.mobileNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Voter EPIC No OR Madhyamik ROLL No</p>
+                  <p className="font-medium text-gray-900">{brideData.voterOrRollNo}</p>
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-200">
@@ -2601,6 +2621,7 @@ const ApplicationFormContent: React.FC = () => {
             dateOfBirth: data.dateOfBirth || (application?.userDetails as any)?.dateOfBirth || '',
             aadhaarNumber: data.aadhaarNumber || (application?.userDetails as any)?.aadhaarNumber || '',
             mobileNumber: data.mobileNumber || (application?.userDetails as any)?.mobileNumber || '',
+            voterOrRollNo: data.voterOrRollNo || (application?.userDetails as any)?.voterOrRollNo || '',
           },
           userAddress: {
             villageStreet: data.permanentVillageStreet || ((application?.userAddress as any)?.villageStreet || application?.userAddress?.street || ''),
@@ -2645,6 +2666,7 @@ const ApplicationFormContent: React.FC = () => {
             idNumber: data.aadhaarNumber || ((application?.partnerForm as any)?.aadhaarNumber || (application?.partnerForm as any)?.idNumber || ''),
             aadhaarNumber: data.aadhaarNumber || ((application?.partnerForm as any)?.aadhaarNumber || (application?.partnerForm as any)?.idNumber || ''),
             mobileNumber: data.mobileNumber || (application?.partnerForm as any)?.mobileNumber || '',
+            voterOrRollNo: data.voterOrRollNo || (application?.partnerForm as any)?.voterOrRollNo || '',
             address: {
               villageStreet: data.permanentVillageStreet || ((application?.partnerAddress as any)?.villageStreet || application?.partnerAddress?.street || ''),
               postOffice: data.permanentPostOffice || (application?.partnerAddress as any)?.postOffice || '',

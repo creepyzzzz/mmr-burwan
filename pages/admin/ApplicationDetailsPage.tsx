@@ -613,6 +613,21 @@ const ApplicationDetailsPage: React.FC = () => {
                 <p className="font-medium text-gray-900">{userDetails.mobileNumber || '-'}</p>
               )}
             </div>
+            <div>
+              <p className="text-gray-500 mb-1">Voter EPIC No OR Madhyamik ROLL No</p>
+              {isEditing ? (
+                <Input
+                  value={userDetails.voterOrRollNo || ''}
+                  onChange={(e) => setEditForm({
+                    ...editForm,
+                    userDetails: { ...userDetails, voterOrRollNo: e.target.value }
+                  })}
+                  placeholder="Enter Voter No or Roll No"
+                />
+              ) : (
+                <p className="font-medium text-gray-900">{userDetails.voterOrRollNo || '-'}</p>
+              )}
+            </div>
           </div>
         </Card>
 
@@ -918,6 +933,21 @@ const ApplicationDetailsPage: React.FC = () => {
                 />
               ) : (
                 <p className="font-medium text-gray-900">{(partnerForm as any).mobileNumber || '-'}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Voter EPIC No OR Madhyamik ROLL No</p>
+              {isEditing ? (
+                <Input
+                  value={(partnerForm as any).voterOrRollNo || ''}
+                  onChange={(e) => setEditForm({
+                    ...editForm,
+                    partnerForm: { ...partnerForm, voterOrRollNo: e.target.value }
+                  })}
+                  placeholder="Enter Voter No or Roll No"
+                />
+              ) : (
+                <p className="font-medium text-gray-900">{(partnerForm as any).voterOrRollNo || '-'}</p>
               )}
             </div>
           </div>

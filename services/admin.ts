@@ -994,38 +994,27 @@ export const adminService = {
       throw new Error('Application not found');
     }
 
-    // Verify user is allowed to delete (client-side check + Edge Function will verify admin status)
+    // Direct deletion from Supabase (bypassing Edge Function as requested)
+    // First remove proxy credentials if they exist
+    const { error: credError } = await supabase
+      .from('proxy_user_credentials')
+      .delete()
+      .eq('application_id', applicationId);
 
-    // Call Edge Function to delete (bypasses RLS)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      throw new Error("Authentication required");
+    if (credError) {
+      console.warn('Error deleting proxy credentials:', credError);
+      // We continue even if this fails, as the main goal is to delete the application
     }
 
-    const start = Date.now();
-    try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/delete-application`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-        },
-        body: JSON.stringify({
-          applicationId,
-          adminId: actorId
-        })
-      });
+    // Then delete the application
+    const { error: deleteError } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', applicationId);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete application');
-      }
-    } catch (err: any) {
-      console.error("Edge function delete failed:", err);
-      throw new Error(err.message || "Failed to invoke delete function");
+    if (deleteError) {
+      console.error("Direct delete failed:", deleteError);
+      throw new Error(deleteError.message || 'Failed to delete application');
     }
 
     // Only audit log if delete was successful
@@ -1038,7 +1027,8 @@ export const adminService = {
       resourceId: applicationId,
       details: {
         previousStatus: appData.status,
-        userId: appData.user_id
+        userId: appData.user_id,
+        note: 'Deleted via direct client action'
       }
     });
   },

@@ -39,7 +39,7 @@ const VerifyPage: React.FC = () => {
     if (address.district) parts.push(`Dist. ${address.district}`);
     if (address.state) parts.push(address.state);
     if (address.zipCode) parts.push(`PIN- ${address.zipCode}`);
-    return parts.length > 0 ? parts.join(', ') : 'N/A';
+    return parts.length > 0 ? parts.join(', ').toUpperCase() : 'N/A';
   };
 
   useEffect(() => {
@@ -218,11 +218,11 @@ const VerifyPage: React.FC = () => {
                     <div className="space-y-2">
                       <div>
                         <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 uppercase tracking-wider font-medium">Name</p>
-                        <p className="font-semibold text-xs sm:text-sm text-gray-900">
+                        <p className="font-semibold text-xs sm:text-sm text-gray-900 uppercase">
                           {certificateData.userDetails?.firstName} {certificateData.userDetails?.lastName}
                         </p>
                         {certificateData.userDetails?.fatherName && (
-                          <p className="text-[11px] sm:text-xs text-gray-600">Son of {certificateData.userDetails.fatherName}</p>
+                          <p className="text-[11px] sm:text-xs text-gray-600 uppercase">SON OF {certificateData.userDetails.fatherName}</p>
                         )}
                       </div>
                       <div>
@@ -243,11 +243,11 @@ const VerifyPage: React.FC = () => {
                     <div className="space-y-2">
                       <div>
                         <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 uppercase tracking-wider font-medium">Name</p>
-                        <p className="font-semibold text-xs sm:text-sm text-gray-900">
+                        <p className="font-semibold text-xs sm:text-sm text-gray-900 uppercase">
                           {certificateData.partnerForm?.firstName} {certificateData.partnerForm?.lastName}
                         </p>
                         {certificateData.partnerForm?.fatherName && (
-                          <p className="text-[11px] sm:text-xs text-gray-600">Daughter of {certificateData.partnerForm.fatherName}</p>
+                          <p className="text-[11px] sm:text-xs text-gray-600 uppercase">DAUGHTER OF {certificateData.partnerForm.fatherName}</p>
                         )}
                       </div>
                       <div>

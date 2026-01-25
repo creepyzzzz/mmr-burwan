@@ -13,7 +13,7 @@ import VerifyApplicationModal from '../../components/admin/VerifyApplicationModa
 import { Users, Search, Eye, MessageSquare, FileCheck, CheckCircle, XCircle, ArrowLeft, FileText } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
 import { useDebounce } from '../../hooks/useDebounce';
-import { downloadCertificate } from '../../utils/certificateGenerator';
+import { downloadCertificate, downloadStoredCertificate } from '../../utils/certificateGenerator';
 
 const CircularProgress = ({
   progress,
@@ -514,7 +514,15 @@ const ClientsPage: React.FC = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="!text-[11px] !px-3 !py-1.5 !rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex-1"
-                                  onClick={() => downloadCertificate(client.application!)}
+                                  onClick={() => {
+                                    const cert = certificatesMap[client.application!.id];
+                                    if (cert?.pdfUrl) {
+                                      downloadStoredCertificate(
+                                        cert.pdfUrl,
+                                        `Marriage-Certificate-${cert.verificationId || client.application!.id}.pdf`
+                                      );
+                                    }
+                                  }}
                                 >
                                   <FileCheck size={14} className="mr-1" />
                                   Download
@@ -730,7 +738,15 @@ const ClientsPage: React.FC = () => {
                                       variant="ghost"
                                       size="sm"
                                       className="!text-[10px] sm:!text-xs !px-1.5 sm:!px-2 text-indigo-600 hover:bg-indigo-50"
-                                      onClick={() => downloadCertificate(client.application!)}
+                                      onClick={() => {
+                                        const cert = certificatesMap[client.application!.id];
+                                        if (cert?.pdfUrl) {
+                                          downloadStoredCertificate(
+                                            cert.pdfUrl,
+                                            `Marriage-Certificate-${cert.verificationId || client.application!.id}.pdf`
+                                          );
+                                        }
+                                      }}
                                     >
                                       <FileCheck size={12} className="sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
                                       <span className="hidden sm:inline">Download</span>

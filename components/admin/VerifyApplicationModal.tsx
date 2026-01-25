@@ -7,6 +7,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import { adminService } from '../../services/admin';
+import { CertificateDetails } from '../../types';
 
 // Generate roman numerals from 1 to 50
 const generateRomanNumerals = (): string[] => {
@@ -202,7 +203,7 @@ const verifySchema = z.object({
 interface VerifyApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (certificateNumber: string, registrationDate: string, registrarName: string) => Promise<void>;
+  onConfirm: (certificateNumber: string, registrationDate: string, registrarName: string, certificateDetails: CertificateDetails) => Promise<void>;
   applicationId: string;
   currentCertificateNumber?: string;
   currentRegistrationDate?: string;
@@ -214,6 +215,7 @@ interface VerifyApplicationModalProps {
     belongsTo?: 'user' | 'partner' | 'joint';
     isReuploaded?: boolean;
   }>;
+  initialCertificateDetails?: CertificateDetails;
 }
 
 const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
@@ -224,6 +226,7 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
   currentCertificateNumber,
   currentRegistrationDate,
   documents = [],
+  initialCertificateDetails,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -315,7 +318,7 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
   // Reset form when modal opens/closes or certificate number changes
   useEffect(() => {
     if (isOpen) {
-      const parsed = parseCertificateNumber(currentCertificateNumber);
+      const parsed = initialCertificateDetails ? initialCertificateDetails : parseCertificateNumber(currentCertificateNumber);
       reset({
         bookNumber: parsed.bookNumber,
         volumeNumber: parsed.volumeNumber,
@@ -328,7 +331,7 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
         registrarName: 'minhajul_islam_khan', // Default to Minhajul Islam Khan
       });
     }
-  }, [isOpen, currentCertificateNumber, currentRegistrationDate, reset]);
+  }, [isOpen, currentCertificateNumber, currentRegistrationDate, reset, initialCertificateDetails]);
 
   const onSubmit = async (data: any) => {
     // Prevent submission if there are rejected documents
@@ -364,7 +367,17 @@ const VerifyApplicationModal: React.FC<VerifyApplicationModalProps> = ({
         return;
       }
 
-      await onConfirm(fullCertificateNumber, data.registrationDate, data.registrarName);
+      const certificateDetails: CertificateDetails = {
+        bookNumber: data.bookNumber,
+        volumeNumber: data.volumeNumber,
+        volumeLetter: data.volumeLetter,
+        volumeYear: data.volumeYear,
+        serialNumber: data.serialNumber,
+        serialYear: data.serialYear,
+        pageNumber: data.pageNumber,
+      };
+
+      await onConfirm(fullCertificateNumber, data.registrationDate, data.registrarName, certificateDetails);
       reset();
       onClose();
     } catch (error: any) {

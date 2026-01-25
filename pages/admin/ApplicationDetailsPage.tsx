@@ -6,7 +6,7 @@ import { applicationService } from '../../services/application';
 import { documentService } from '../../services/documents';
 import { adminService } from '../../services/admin';
 import { supabase } from '../../lib/supabase';
-import { Application, Document } from '../../types';
+import { Application, Document, CertificateDetails } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -240,7 +240,7 @@ const ApplicationDetailsPage: React.FC = () => {
     setIsEditing(false);
   };
 
-  const handleVerify = async (certificateNumber: string, registrationDate: string, registrarName: string) => {
+  const handleVerify = async (certificateNumber: string, registrationDate: string, registrarName: string, certificateDetails: CertificateDetails) => {
     if (!application || !user) return;
 
     try {
@@ -250,7 +250,8 @@ const ApplicationDetailsPage: React.FC = () => {
         user.name || user.email,
         certificateNumber,
         registrationDate,
-        registrarName
+        registrarName,
+        certificateDetails
       );
       setApplication(updated);
       showToast('Application verified successfully', 'success');
@@ -433,6 +434,15 @@ const ApplicationDetailsPage: React.FC = () => {
                 {application.registrationDate && (
                   <p>Reg. Date: {safeFormatDate(application.registrationDate, 'MMM d, yyyy')}</p>
                 )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsVerifyModalOpen(true)}
+                  className="!p-0 !h-auto !text-gold-600 hover:!text-gold-700 mt-1"
+                >
+                  <Edit2 size={12} className="mr-1" />
+                  Edit Certificate
+                </Button>
               </div>
             )}
           </div>
@@ -1784,6 +1794,7 @@ const ApplicationDetailsPage: React.FC = () => {
         currentCertificateNumber={application?.certificateNumber}
         currentRegistrationDate={application?.registrationDate}
         documents={documents}
+        initialCertificateDetails={application?.certificateDetails}
       />
 
       {/* Reject Document Modal */}

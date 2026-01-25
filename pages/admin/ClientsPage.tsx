@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { adminService } from '../../services/admin';
 import { certificateService } from '../../services/certificates';
-import { Application } from '../../types';
+import { Application, CertificateDetails } from '../../types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -87,7 +87,7 @@ const ClientsPage: React.FC = () => {
     loadClients();
   }, []);
 
-  const handleVerify = async (certificateNumber: string, registrationDate: string, registrarName: string) => {
+  const handleVerify = async (certificateNumber: string, registrationDate: string, registrarName: string, certificateDetails: CertificateDetails) => {
     if (!user) return;
 
     try {
@@ -97,7 +97,8 @@ const ClientsPage: React.FC = () => {
         user.name || user.email,
         certificateNumber,
         registrationDate,
-        registrarName
+        registrarName,
+        certificateDetails
       );
       showToast('Application verified successfully', 'success');
 

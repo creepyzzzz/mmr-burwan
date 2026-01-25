@@ -5,7 +5,7 @@ import { notificationService } from './notifications';
 import { emailService } from './email';
 import { certificateService } from './certificates';
 import { supabase } from '../lib/supabase';
-import { Application } from '../types';
+import { Application, CertificateDetails } from '../types';
 import { generateAndUploadCertificate } from '../utils/certificateGenerator';
 
 export const adminService = {
@@ -337,7 +337,8 @@ export const adminService = {
     actorName: string,
     certificateNumber: string,
     registrationDate: string,
-    registrarName: string
+    registrarName: string,
+    certificateDetails: CertificateDetails
   ): Promise<Application> {
     // First, check for rejected documents that haven't been re-uploaded
     const { data: documentsData, error: docsError } = await supabase
@@ -356,7 +357,6 @@ export const adminService = {
     );
 
     if (rejectedNotReuploaded.length > 0) {
-      // Get document type labels
       const getDocumentTypeLabel = (type: string): string => {
         const labels: Record<string, string> = {
           aadhaar: 'Aadhaar Card',
@@ -395,7 +395,7 @@ export const adminService = {
       );
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('applications')
       .update({
         verified: true,
@@ -404,16 +404,26 @@ export const adminService = {
         certificate_number: certificateNumber,
         registration_date: registrationDate,
         registrar_name: registrarName,
+        certificate_details: certificateDetails,
       })
-      .eq('id', applicationId)
+      .eq('id', applicationId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Refetch the application to ensure we get the updated certificate_details
+    const { data, error: fetchError } = await supabase
+      .from('applications')
       .select(`
         *,
         documents (*)
       `)
+      .eq('id', applicationId)
       .single();
 
-    if (error) {
-      throw new Error(error.message);
+    if (fetchError || !data) {
+      throw new Error(fetchError?.message || 'Failed to fetch updated application');
     }
 
     // Get user details for personalized notification

@@ -215,20 +215,46 @@ export const generateCertificateData = (application: Application) => {
   const verificationId = `MMR-BW-${currentYear}-${String(Date.now()).slice(-6)}`;
 
   // Parse certificate number to extract components (parse the normalized version)
-  const certParts = parseCertificateNumber(consecutiveNumber);
+  let certParts;
+
+  if (application.certificateDetails) {
+    // Use structured details if available (prevents parsing errors with variable length fields)
+    const { bookNumber, ...rest } = application.certificateDetails;
+    certParts = {
+      book: bookNumber,
+      ...rest
+    };
+  } else {
+    // Fallback to parsing the string if details are missing
+    certParts = parseCertificateNumber(consecutiveNumber);
+  }
 
   // Format volume number: "1-C/2024", "1-C", "1/2024", or "1"
   // Handle empty volumeLetter to avoid trailing dashes
   const volNo = (() => {
+    // If we have explicit certificate details, use them strictly
+    if (application.certificateDetails) {
+      const { volumeNumber, volumeLetter, volumeYear } = application.certificateDetails;
+      const volumeStr = [volumeNumber, volumeLetter].filter(Boolean).join('-');
+      return volumeYear ? `${volumeStr}/${volumeYear}` : volumeStr;
+    }
+
+    // Fallback logic
     const parts = [certParts.volumeNumber, certParts.volumeLetter].filter(Boolean);
     const basePart = parts.join('-');
     return certParts.volumeYear ? `${basePart}/${certParts.volumeYear}` : basePart;
   })();
 
   // Format serial number: "3/2026" or "3" if serialYear is empty
-  const serialNo = certParts.serialYear
-    ? `${certParts.serialNumber}/${certParts.serialYear}`
-    : certParts.serialNumber;
+  const serialNo = (() => {
+    if (application.certificateDetails) {
+      const { serialNumber, serialYear } = application.certificateDetails;
+      return serialYear ? `${serialNumber}/${serialYear}` : serialNumber;
+    }
+    return certParts.serialYear
+      ? `${certParts.serialNumber}/${certParts.serialYear}`
+      : certParts.serialNumber;
+  })();
 
   // Determine registrar information based on application.registrarName
   // Default to minhajul_islam_khan for backward compatibility

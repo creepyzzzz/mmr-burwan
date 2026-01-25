@@ -13,7 +13,7 @@ import VerifyApplicationModal from '../../components/admin/VerifyApplicationModa
 import { Users, Search, Eye, MessageSquare, FileCheck, CheckCircle, XCircle, ArrowLeft, FileText } from 'lucide-react';
 import { safeFormatDateObject } from '../../utils/dateUtils';
 import { useDebounce } from '../../hooks/useDebounce';
-import { downloadCertificate, downloadStoredCertificate } from '../../utils/certificateGenerator';
+
 
 const CircularProgress = ({
   progress,
@@ -179,6 +179,30 @@ const ClientsPage: React.FC = () => {
     } catch (error: any) {
       showToast(error.message || 'Failed to verify application', 'error');
       throw error;
+    }
+  };
+
+  const handleViewCertificate = async (cert: Certificate) => {
+    try {
+      const url = await certificateService.getSignedUrl(cert.id);
+      window.open(url, '_blank');
+    } catch (error) {
+      showToast('Failed to open certificate', 'error');
+    }
+  };
+
+  const handleDownloadCertificate = async (cert: Certificate) => {
+    try {
+      const url = await certificateService.getSignedUrl(cert.id);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Marriage-Certificate-${cert.certificateNumber || cert.verificationId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Certificate downloaded successfully', 'success');
+    } catch (error) {
+      showToast('Failed to generate download link', 'error');
     }
   };
 
@@ -500,12 +524,7 @@ const ClientsPage: React.FC = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="!text-[11px] !px-3 !py-1.5 !rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 flex-1"
-                                  onClick={() => {
-                                    const cert = certificatesMap[client.application!.id];
-                                    if (cert?.pdfUrl) {
-                                      window.open(cert.pdfUrl, '_blank');
-                                    }
-                                  }}
+                                  onClick={() => handleViewCertificate(certificatesMap[client.application!.id]!)}
                                 >
                                   <FileText size={14} className="mr-1" />
                                   View Cert
@@ -514,15 +533,7 @@ const ClientsPage: React.FC = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="!text-[11px] !px-3 !py-1.5 !rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex-1"
-                                  onClick={() => {
-                                    const cert = certificatesMap[client.application!.id];
-                                    if (cert?.pdfUrl) {
-                                      downloadStoredCertificate(
-                                        cert.pdfUrl,
-                                        `Marriage-Certificate-${cert.verificationId || client.application!.id}.pdf`
-                                      );
-                                    }
-                                  }}
+                                  onClick={() => handleDownloadCertificate(certificatesMap[client.application!.id]!)}
                                 >
                                   <FileCheck size={14} className="mr-1" />
                                   Download
@@ -724,12 +735,7 @@ const ClientsPage: React.FC = () => {
                                       variant="ghost"
                                       size="sm"
                                       className="!text-[10px] sm:!text-xs !px-1.5 sm:!px-2 text-blue-600 hover:bg-blue-50"
-                                      onClick={() => {
-                                        const cert = certificatesMap[client.application!.id];
-                                        if (cert?.pdfUrl) {
-                                          window.open(cert.pdfUrl, '_blank');
-                                        }
-                                      }}
+                                      onClick={() => handleViewCertificate(certificatesMap[client.application!.id]!)}
                                     >
                                       <FileText size={12} className="sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
                                       <span className="hidden sm:inline">View</span>
@@ -738,15 +744,7 @@ const ClientsPage: React.FC = () => {
                                       variant="ghost"
                                       size="sm"
                                       className="!text-[10px] sm:!text-xs !px-1.5 sm:!px-2 text-indigo-600 hover:bg-indigo-50"
-                                      onClick={() => {
-                                        const cert = certificatesMap[client.application!.id];
-                                        if (cert?.pdfUrl) {
-                                          downloadStoredCertificate(
-                                            cert.pdfUrl,
-                                            `Marriage-Certificate-${cert.verificationId || client.application!.id}.pdf`
-                                          );
-                                        }
-                                      }}
+                                      onClick={() => handleDownloadCertificate(certificatesMap[client.application!.id]!)}
                                     >
                                       <FileCheck size={12} className="sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
                                       <span className="hidden sm:inline">Download</span>
